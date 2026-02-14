@@ -1,6 +1,6 @@
 # HELIOS MVP - Space Weather CME Prediction System
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/YOUR_USERNAME/helios-mvp/blob/main/notebooks/HELIOS_Colab_Demo.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pawelmical/helios-space-weather/blob/main/notebooks/HELIOS_Colab_Demo.ipynb)
 
 ## Overview
 
@@ -23,8 +23,8 @@ Click the "Open in Colab" badge above, or open `notebooks/HELIOS_Colab_Demo.ipyn
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/helios-mvp.git
-cd helios-mvp
+git clone https://github.com/pawelmical/helios-space-weather.git
+cd helios-space-weather
 
 # Create virtual environment
 python -m venv venv
@@ -42,7 +42,7 @@ python scripts/run_complete_mvp.py
 ## Project Structure
 
 ```
-helios-mvp/
+helios-space-weather/
 ├── README.md                      # This file
 ├── requirements.txt               # Python dependencies (includes PyTorch)
 ├── LICENSE                        # MIT License
@@ -157,7 +157,7 @@ The dual-head neural network:
 If using this framework, please cite:
 
 ```
-HELIOS Team (2026). HELIOS MVP: Space Weather CME Prediction System.
+Paweł Micał (2026). HELIOS: Space Weather CME Prediction System.
 Space Weather Early Warning System Development.
 ```
 
@@ -167,4 +167,4 @@ MIT License - see [LICENSE](LICENSE) file.
 
 ## Contact
 
-HELIOS Team - Space Weather Research Division
+Paweł Micał - pawelmical@github
