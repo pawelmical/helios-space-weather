@@ -167,4 +167,4 @@ MIT License - see [LICENSE](LICENSE) file.
 
 ## Contact
 
-Paweł Micał - pawelmical@github
+Paweł Micał - pawelmical@icloud.com
