@@ -209,7 +209,7 @@ VALIDATION_TARGETS = {
     'bastille_day_2000': {
         'date': '2000-07-14',
         'expected_bz': -60.0,  # nT (measured at ACE)
-        'bz_tolerance': 7.0,   # MAE target
+        'bz_tolerance': 10.0,  # MAE target per whitepaper Table 4
         'expected_severity': 3, # Extreme
         'speed_kms': 1674,
         'width_deg': 360,

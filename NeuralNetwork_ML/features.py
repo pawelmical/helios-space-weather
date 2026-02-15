@@ -362,8 +362,8 @@ def create_bastille_day_features() -> CMEFeatures:
         parallax_L1L5=parallax_L1L5,
         parallax_L4L5=parallax_L4L5,
         detection_time=detection_time,
-        triangulation_quality=0.85,
-        observation_completeness=1.0
+        triangulation_quality=min(1.0, width / 200.0),  # must match extract_features() in run_final_validation.py
+        observation_completeness=min(1.0, width / 180.0)  # must match extract_features() in run_final_validation.py
     )
 
 
