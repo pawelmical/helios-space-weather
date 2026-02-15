@@ -39,12 +39,16 @@ logs/
 # Temporary files
 *.tmp
 *.temp
-# Model files (large)
+# Model files (large) - except trained model
 *.pth
 *.pt
 *.h5
 *.pkl
+!output/helios_final_model_proper.pth
 
-# Data files (large)
+# Data files (large) - except essential MVP data
 *.json
+!data/bastille_goes8_data.json
+
 *.csv
+!data/events_list.csv

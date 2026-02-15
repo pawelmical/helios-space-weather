@@ -62,31 +62,27 @@ helios-space-weather/
 │   ├── config.py                  # ML configuration
 │   ├── model.py                   # Dual-head NN architecture
 │   ├── features.py                # Feature engineering
-│   ├── dataset_generator.py       # Synthetic data generation
-│   ├── train.py                   # Training loop
 │   ├── severity.py                # Severity classification
-│   ├── warning_generator.py       # Crew warning system
-│   └── tmr_voting.py              # Triple modular redundancy
+│   ├── tmr_voting.py              # Triple modular redundancy
+│   └── warning_generator.py       # Crew warning system
 │
-├── scripts/                       # Executable scripts
-│   ├── run_complete_mvp.py        # Main demo script
-│   ├── helios_unified_mvp.py      # Unified pipeline
-│   ├── run_final_validation.py    # Validation suite
-│   └── run_training.py            # Model training
+├── scripts/
+│   └── run_complete_mvp.py        # Main entry point
 │
-├── notebooks/                     # Jupyter notebooks
-│   ├── HELIOS_Colab_Demo.ipynb    # Google Colab demo
-│   └── validation_run.ipynb       # Detailed validation
+├── notebooks/
+│   └── HELIOS_Colab_Demo.ipynb    # Google Colab demo
 │
-├── data/                          # Input data
+├── data/
 │   ├── events_list.csv            # CME event catalog
 │   └── bastille_goes8_data.json   # Bastille Day 2000 data
 │
-├── output/                        # Generated results & models
+├── output/
 │   └── helios_final_model_proper.pth  # Trained model
 │
-├── analysis/                      # Research scripts
-└── docs/                          # Documentation
+└── docs/                          # Technical documentation
+    ├── GEOMETRY_UNIFIED.md        # Constellation geometry
+    ├── TRIANGULATION_GUIDE.md     # Algorithm guide
+    └── METRIC_CALCULATION_TRACE.md # Metric derivation
 ```
 
 ## Usage Examples
