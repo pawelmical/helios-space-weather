@@ -55,7 +55,7 @@ For **Earth-directed CMEs** (along Sun-Earth line at longitude 0°):
 The **L1+L4 pair** is used for Earth-directed CME triangulation because:
 
 1. **90° intersection angle** = optimal geometry (minimizes GDOP)
-2. **Best spatial resolution**: ~0.5 million km at 0.5 AU with σ=0.5°
+2. **Best spatial resolution**: 1.10 million km at 0.5 AU with σ=0.5°
 3. **L1 on Sun-Earth line** provides direct Earth-threat assessment
 4. **L4 at +60°** provides optimal stereoscopic baseline
 
@@ -81,9 +81,9 @@ The **L1+L4 pair** is used for Earth-directed CME triangulation because:
 
 | Angular Uncertainty (σ) | Spatial Resolution | Solar Radii |
 |------------------------|-------------------|-------------|
-| 1.0° | ~1.0 million km | ~1.4 Rs |
-| 0.5° | **~0.5 million km** | **~0.7 Rs** |
-| 0.25° | ~0.25 million km | ~0.36 Rs |
+| 1.0° | ~2.2 million km | ~3.2 Rs |
+| 0.5° | **1.10 million km** | **1.59 Rs** |
+| 0.25° | ~0.55 million km | ~0.79 Rs |
 
 ### **2. Triangulation-Constrained Prediction Improvement**
 
@@ -152,7 +152,7 @@ You're correct that L1 at 0° doesn't add much angular separation for **coverage
 2. Updated `HELIOS_Colab_Demo.ipynb` to use L1+L4 for triangulation
 3. Documented the optimal pair selection logic
 
-**Result**: Consistent ~0.5 million km spatial resolution at 0.5 AU (σ=0.5°) across all files using L1+L4 optimal pair.
+**Result**: Consistent 1.10 million km spatial resolution at 0.5 AU (σ=0.5°) across all files using L1+L4 optimal pair.
 
 ---
 

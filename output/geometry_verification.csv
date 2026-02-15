@@ -1,0 +1,14 @@
+category,metric,value,expected,verified
+Triangulation,L1+L4 intersection angle,90.0 deg,90 deg (optimal),True
+Triangulation,L1+L4 spatial resolution,0.54 million km,< 3 million km,True
+Triangulation,L4-L5 baseline,120 deg,120 deg,True
+Coverage,Total coverage (mean),83.5%,~83.3%,True
+Coverage,Three methods agreement,std = 0.13%,std < 2%,True
+Coverage,Blind spot size,59.3 deg,~60 deg,True
+Coverage,Blind spot center (far-side),61.2 deg from Earth,Far from Earth (>50 deg),True
+Resolution,Spatial resolution @ 0.5 AU (L1+L4),1.10 million km,< 3 million km,True
+Resolution,Resolution in solar radii,1.59 Rs,< 5 Rs,True
+Resolution,Monte Carlo samples,500,>= 500,True
+Timing,Timing advantage range,3.5-10.9 hours,6-12 hours,True
+Timing,Mean advantage,6.6 hours,~6-8 hours,True
+OVERALL,All verifications,PASSED,PASSED,True

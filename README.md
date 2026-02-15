@@ -64,11 +64,16 @@ helios-space-weather/
 │   ├── features.py                # Feature engineering
 │   ├── severity.py                # Severity classification
 │   ├── tmr_voting.py              # Triple modular redundancy
-│   └── warning_generator.py       # Crew warning system
+│   ├── warning_generator.py       # Crew warning system
+│   ├── train.py                   # Model training
+│   ├── preprocessing.py           # Data preprocessing
+│   ├── dataset_generator.py       # Dataset generation
+│   └── validation.py              # Model validation
 │
 ├── scripts/
 │   ├── run_complete_mvp.py        # Main MVP demo
-│   ├── run_historical_validation.py # Whitepaper metrics verification
+│   ├── run_final_validation.py    # Train model + generate whitepaper metrics (v2 pipeline)
+│   ├── run_historical_validation.py # (legacy - replaced by run_final_validation.py)
 │   └── test_triangulation_constraint.py # Triangulation verification
 │
 ├── notebooks/
@@ -79,7 +84,13 @@ helios-space-weather/
 │   └── bastille_goes8_data.json   # Bastille Day 2000 data
 │
 ├── output/
-│   └── helios_final_model_proper.pth  # Trained model
+│   ├── helios_final_model_proper.pth  # Trained model
+│   ├── final_validation_results.json  # Gold standard metrics
+│   ├── mvp_results/                   # Validation run outputs
+│   ├── geometry_verification.csv      # Geometry validation
+│   ├── coverage_analysis.csv          # Coverage analysis
+│   ├── timing_advantage.csv           # Timing metrics
+│   └── ...                            # Additional CSV outputs
 │
 └── docs/                          # Technical documentation
     ├── GEOMETRY_UNIFIED.md        # Constellation geometry

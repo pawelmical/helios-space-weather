@@ -49,6 +49,14 @@ logs/
 # Data files (large) - except essential MVP data
 *.json
 !data/bastille_goes8_data.json
+!output/final_validation_results.json
+!output/mvp_results/
 
 *.csv
 !data/events_list.csv
+!output/geometry_verification.csv
+!output/coverage_analysis.csv
+!output/detection_windows_verification.csv
+!output/timing_advantage.csv
+!output/spatial_resolution_sweep.csv
+!output/dose_validation_matrix.csv

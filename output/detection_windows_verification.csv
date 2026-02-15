@@ -1,0 +1,7 @@
+type,speed_km_s,claimed_start_h,claimed_end_h,calculated_start_h,calculated_end_h,start_match,end_match,start_distance_au,end_distance_au
+detection,800,0.6,7.2,0.604166667,7.25,TRUE,TRUE,,
+detection,1500,0.3,3.9,0.322222222,3.866666667,TRUE,TRUE,,
+detection,2500,0.2,2.3,0.193333333,2.32,TRUE,TRUE,,
+triangulation,800,1.2,15.6,1.208333333,15.70833333,TRUE,TRUE,0.023262032,0.302406417
+triangulation,1500,0.6,8.3,0.644444444,8.377777778,TRUE,TRUE,0.023262032,0.302406417
+triangulation,2500,0.4,5,0.386666667,5.026666667,TRUE,TRUE,0.023262032,0.302406417
