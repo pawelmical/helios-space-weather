@@ -39,3 +39,12 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+# Model files (large)
+*.pth
+*.pt
+*.h5
+*.pkl
+
+# Data files (large)
+*.json
+*.csv
