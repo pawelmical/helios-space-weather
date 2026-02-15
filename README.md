@@ -67,7 +67,9 @@ helios-space-weather/
 │   └── warning_generator.py       # Crew warning system
 │
 ├── scripts/
-│   └── run_complete_mvp.py        # Main entry point
+│   ├── run_complete_mvp.py        # Main MVP demo
+│   ├── run_historical_validation.py # Whitepaper metrics verification
+│   └── test_triangulation_constraint.py # Triangulation verification
 │
 ├── notebooks/
 │   └── HELIOS_Colab_Demo.ipynb    # Google Colab demo

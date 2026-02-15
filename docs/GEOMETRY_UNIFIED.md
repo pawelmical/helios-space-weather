@@ -1,7 +1,7 @@
 # HELIOS Geometry Unification - L1+L4+L5 Constellation
 
 **Date:** February 1, 2026  
-**Status:** ✅ UNIFIED - All files now use consistent L1+L4+L5 geometry
+**Status:** UNIFIED - All files now use consistent L1+L4+L5 geometry
 
 ---
 
@@ -11,7 +11,7 @@ The HELIOS project now uses **consistent L1+L4+L5 constellation geometry** acros
 
 ---
 
-## 🎯 **Constellation Configuration**
+## Constellation Configuration
 
 ### **Observer Positions (Static Geometry)**
 
@@ -40,15 +40,15 @@ def get_observer_position(longitude_deg: float, distance_au: float = 1.0) -> np.
 
 ---
 
-## 📐 **Triangulation Strategy for Earth-Directed CMEs**
+## Triangulation Strategy for Earth-Directed CMEs
 
 ### **Optimal Pairs (90° Intersection Angle)**
 
 For **Earth-directed CMEs** (along Sun-Earth line at longitude 0°):
 
-- **L1 + L4**: 90° intersection angle → **OPTIMAL** ✅
-- **L1 + L5**: 90° intersection angle → **OPTIMAL** ✅  
-- **L4 + L5**: ~180° intersection angle → **DEGENERATE** ❌ (parallel lines)
+- **L1 + L4**: 90° intersection angle - **OPTIMAL**
+- **L1 + L5**: 90° intersection angle - **OPTIMAL**
+- **L4 + L5**: ~180° intersection angle - **DEGENERATE** (parallel lines)
 
 ### **Why L1+L4 is Used**
 
@@ -63,23 +63,19 @@ The **L1+L4 pair** is used for Earth-directed CME triangulation because:
 
 ---
 
-## 📂 **File Consistency**
+## File Consistency
 
 ### **Files Using Unified L1+L4+L5 Geometry**
 
 | File | Geometry Type | Triangulation Pair | Purpose |
 |------|---------------|-------------------|---------|
-| [geometry_verification.py](code/geometry_verification.py) | Static L1+L4+L5 | **L1+L4** | Mathematical proof of constellation optimality |
-| [test_triangulation_constraint.py](test_triangulation_constraint.py) | Static L1+L4+L5 | **L1+L4** | Single-event realistic test with tracking |
-| [validation_run.ipynb](notebooks/validation_run.ipynb) | Dynamic L1+L4+L5 | L4+L5 (suboptimal) | Full pipeline demonstration |
-
-### **Action Item**: Update validation_run.ipynb
-
-The notebook currently uses **L4+L5** for triangulation (suboptimal for Earth-directed CMEs). Consider updating to **L1+L4** for consistency.
+| [geometry_verification.py](../helios_code/geometry_verification.py) | Static L1+L4+L5 | **L1+L4** | Mathematical proof of constellation optimality |
+| [test_triangulation_constraint.py](../scripts/test_triangulation_constraint.py) | Static L1+L4+L5 | **L1+L4** | Single-event realistic test with tracking |
+| [HELIOS_Colab_Demo.ipynb](../notebooks/HELIOS_Colab_Demo.ipynb) | Static L1+L4+L5 | **L1+L4** | Full pipeline demonstration |
 
 ---
 
-## 🔬 **Verified Claims**
+## Verified Claims
 
 ### **1. Spatial Resolution (L1+L4 @ 0.5 AU)**
 
@@ -91,7 +87,7 @@ The notebook currently uses **L4+L5** for triangulation (suboptimal for Earth-di
 
 ### **2. Triangulation-Constrained Prediction Improvement**
 
-From [test_triangulation_constraint.py](test_triangulation_constraint.py) results:
+From [test_triangulation_constraint.py](../scripts/test_triangulation_constraint.py) results:
 
 ```
 PREDICTION ERROR:
@@ -121,7 +117,7 @@ UNCERTAINTY RANGE:
 
 ---
 
-## 🎓 **Physical Rationale**
+## Physical Rationale
 
 ### **Why Not Use Dynamic Geometry?**
 
@@ -134,7 +130,7 @@ UNCERTAINTY RANGE:
 **Dynamic geometry** (L4/L5 positions vary with Earth's orbit) is more realistic but:
 - Adds complexity without changing fundamental conclusions
 - L4/L5 positions always maintain ±60° from Earth by definition
-- Used in `validation_run.ipynb` for realistic pipeline demonstration
+- Used in `HELIOS_Colab_Demo.ipynb` for realistic pipeline demonstration
 
 ### **Why L1 Matters Despite Being "In the Middle"**
 
@@ -147,20 +143,20 @@ You're correct that L1 at 0° doesn't add much angular separation for **coverage
 
 ---
 
-## ✅ **Unification Complete**
+## Unification Complete
 
 **Status**: All geometry files now use L1+L4+L5 constellation with L1+L4 as the primary triangulation pair for Earth-directed CMEs.
 
-**Next Steps**:
-1. ✅ Update `test_triangulation_constraint.py` to use L1+L4+L5 geometry
-2. ⏳ Update `validation_run.ipynb` to use L1+L4 instead of L4+L5 for triangulation
-3. ⏳ Document the optimal pair selection logic in whitepaper
+**Completed**:
+1. Updated `test_triangulation_constraint.py` to use L1+L4+L5 geometry
+2. Updated `HELIOS_Colab_Demo.ipynb` to use L1+L4 for triangulation
+3. Documented the optimal pair selection logic
 
 **Result**: Consistent ~0.5 million km spatial resolution at 0.5 AU (σ=0.5°) across all files using L1+L4 optimal pair.
 
 ---
 
-## 📊 **Quick Reference**
+## Quick Reference
 
 ```python
 # Standard observer setup (all files)
@@ -184,5 +180,5 @@ los_l5 = (target - obs_l5) / np.linalg.norm(target - obs_l5)
 
 ---
 
-**Document Maintained By**: HELIOS Team  
-**Last Updated**: February 1, 2026
+**Document Maintained By**: Paweł Micał
+**Last Updated**: February 15, 2026

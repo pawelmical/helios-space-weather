@@ -8,7 +8,7 @@
 ## Metric 1: DETECTION_CONFIDENCE = 93.0%
 
 ### Code Location
-- **File**: `run_historical_validation.py`
+- **File**: `scripts/run_historical_validation.py`
 - **Function**: `evaluate_true_test_set()` → `print_final_metrics()`
 - **Line**: 720
 
@@ -41,7 +41,7 @@ Location: Section 4.3.1 (AI-Enhanced Observation Pipeline)
 ## Metric 2: FALSE_POSITIVE_RATE = 5.0%
 
 ### Code Location
-- **File**: `run_historical_validation.py`
+- **File**: `scripts/run_historical_validation.py`
 - **Function**: `evaluate_true_test_set()` → `print_final_metrics()`
 - **Line**: 721
 
@@ -74,7 +74,7 @@ Location: Section 4.3.1
 ## Metric 3: BZ_MAE = 6.5 nT
 
 ### Code Location
-- **File**: `run_historical_validation.py`
+- **File**: `scripts/run_historical_validation.py`
 - **Function**: `evaluate_true_test_set()`
 - **Lines**: 678-683
 
@@ -127,7 +127,7 @@ Location: Section 4.3.1
 ## Metric 4: BZ_STD = 3.64 nT
 
 ### Code Location
-- **File**: `run_historical_validation.py`
+- **File**: `scripts/run_historical_validation.py`
 - **Function**: `evaluate_true_test_set()`
 - **Line**: 682
 
@@ -176,7 +176,7 @@ Location: Section 4.3.1
 ## Metric 5: IMPROVEMENT_PERCENT = 48.0%
 
 ### Code Location
-- **File**: `run_historical_validation.py`
+- **File**: `scripts/run_historical_validation.py`
 - **Function**: `evaluate_true_test_set()`
 - **Lines**: 684-686
 
@@ -218,7 +218,7 @@ Location: Section 4.3.1
 ## Metric 6: HAZARD_ACCURACY = 83.3%
 
 ### Code Location
-- **File**: `run_historical_validation.py`
+- **File**: `scripts/run_historical_validation.py`
 - **Function**: `evaluate_true_test_set()`
 - **Lines**: 687-689
 
@@ -264,7 +264,7 @@ Location: Section 4.3.2 (Radiation Dosimetry)
 ## Metric 7: ADJACENT_ERROR_RATE = 100.0%
 
 ### Code Location
-- **File**: `run_historical_validation.py`
+- **File**: `scripts/run_historical_validation.py`
 - **Function**: `evaluate_true_test_set()`
 - **Lines**: 693-700
 
@@ -347,7 +347,7 @@ Location: Section 4.3.2
 ## Metric 8: BASTILLE_BZ_ERROR = 4.6 nT
 
 ### Code Location
-- **File**: `run_historical_validation.py`
+- **File**: `scripts/run_historical_validation.py`
 - **Function**: `evaluate_true_test_set()`
 - **Lines**: 758-773
 

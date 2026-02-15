@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `test_triangulation_constraint.py` script demonstrates the **core value proposition of HELIOS**: using stereoscopic triangulation measurements to significantly improve CME arrival predictions.
+The `scripts/test_triangulation_constraint.py` script demonstrates the **core value proposition of HELIOS**: using stereoscopic triangulation measurements to significantly improve CME arrival predictions.
 
 **Key Result**: Reduces prediction error by ~40-99% and uncertainty by ~70% compared to standard methods.
 
@@ -53,7 +53,7 @@ Uses only the coronagraph speed estimate and calibrated drag model with uncertai
 - **Line 112**: `n_members=200` → lower (50-100) for faster runs, higher (500+) for smoother distributions
 - **Line 112**: `seed=42` → change for different random ensemble realizations
 
-**Parameters** (in `code/ensemble_propagation.py` → `run_ensemble()`):
+**Parameters** (in `helios_code/ensemble_propagation.py` → `run_ensemble()`):
 - `v0_variation_percent=15.0` → initial speed uncertainty (±15%)
 - `gamma_variation_percent=30.0` → drag coefficient uncertainty (±30%)
 - `n_power_variation_percent=10.0` → power-law exponent uncertainty (±10%)
@@ -71,7 +71,7 @@ constrained = triangulation_constrained_prediction(
 )
 ```
 
-**The Key Algorithm** (in `code/ensemble_propagation.py`):
+**The Key Algorithm** (in `helios_code/ensemble_propagation.py`):
 
 #### Step 1: Fit Model Parameters to Observations
 ```python
@@ -87,7 +87,7 @@ Uses **L-BFGS-B optimizer** with:
 - **Multi-start**: 3×4×4 = 48 initial guesses to find global minimum
 - **Regularization**: Mild preference for calibrated defaults
 
-**WHERE TO CHANGE** (in `code/ensemble_propagation.py` → `triangulation_constrained_prediction()`):
+**WHERE TO CHANGE** (in `helios_code/ensemble_propagation.py` → `triangulation_constrained_prediction()`):
 
 **Line ~688**: Bounds
 ```python
@@ -121,7 +121,7 @@ gamma_factor = ±10%    # vs ±30% standard
 n_factor = ±5%         # vs ±10% standard
 ```
 
-**WHERE TO CHANGE** (in `code/ensemble_propagation.py` → lines ~735-738):
+**WHERE TO CHANGE** (in `helios_code/ensemble_propagation.py` → lines ~735-738):
 ```python
 v0_variation = 1 + np.random.uniform(-0.05, 0.05, n_ensemble)  # ±5%
 gamma_factor = 1 + np.random.uniform(-0.10, 0.10, n_ensemble)  # ±10%
@@ -135,7 +135,7 @@ n_factor = 1 + np.random.uniform(-0.05, 0.05, n_ensemble)      # ±5%
 ### Fast Interactive Mode
 For quick tests or demos:
 ```python
-# test_triangulation_constraint.py
+# scripts/test_triangulation_constraint.py
 standard = run_ensemble(..., n_members=50)      # Line 112
 constrained = triangulation_constrained_prediction(..., n_ensemble=50)  # Line 119
 ```
@@ -155,7 +155,7 @@ constrained = triangulation_constrained_prediction(..., n_ensemble=500)
 | **Nelder-Mead** | Slow | Excellent | Final production, pathological cases |
 | **Powell** | Medium | Good | Alternative if L-BFGS-B fails |
 
-Change in `code/ensemble_propagation.py` line ~692:
+Change in `helios_code/ensemble_propagation.py` line ~692:
 ```python
 result = minimize(objective, [...], method='L-BFGS-B', ...)  # ← Change here
 ```
@@ -166,8 +166,8 @@ result = minimize(objective, [...], method='L-BFGS-B', ...)  # ← Change here
 
 ### If Script is Too Slow
 
-1. **Reduce ensemble sizes** (50-100 members) → lines 112, 119 of `test_triangulation_constraint.py`
-2. **Reduce multi-start grid** → `code/ensemble_propagation.py` lines 689-696
+1. **Reduce ensemble sizes** (50-100 members) → lines 112, 119 of `scripts/test_triangulation_constraint.py`
+2. **Reduce multi-start grid** → `helios_code/ensemble_propagation.py` lines 689-696
 3. **Lower maxiter** (100-200) → line 694
 4. **Increase timestep `dt`** (0.01 instead of 0.005) → line 59 of test script AND line 697 of ensemble_propagation.py
 
@@ -226,11 +226,16 @@ After training on 100+ events: **~1.2h error (5%)**, **~0.8h uncertainty**
 ## File Structure
 
 ```
-test_triangulation_constraint.py     ← Main demo script (run this)
-code/ensemble_propagation.py         ← Core algorithm (edit for tuning)
-  ├─ triangulation_constrained_prediction()  ← Main function
-  ├─ run_ensemble()                          ← Standard prediction
-  └─ calculate_cme_trajectory()              ← Physics propagation
+scripts/
+├── test_triangulation_constraint.py   ← Triangulation demo script
+├── run_complete_mvp.py                ← Main MVP demo
+└── run_historical_validation.py       ← Metrics verification
+
+helios_code/
+└── ensemble_propagation.py            ← Core algorithm
+    ├─ triangulation_constrained_prediction()  ← Main function
+    ├─ run_ensemble()                          ← Standard prediction
+    └─ calculate_cme_trajectory()              ← Physics propagation
 ```
 
 ---
@@ -239,21 +244,21 @@ code/ensemble_propagation.py         ← Core algorithm (edit for tuning)
 
 | What to Change | File | Line | Variable |
 |----------------|------|------|----------|
-| **Test scenario (true params)** | test_triangulation_constraint.py | 35-37 | `true_gamma_0`, `true_n_power`, `true_initial_speed` |
-| **Measurement times** | test_triangulation_constraint.py | 94 | `measurement_times` |
-| **Ensemble size (interactive)** | test_triangulation_constraint.py | 112, 119 | `n_members`, `n_ensemble` |
-| **Optimizer method** | code/ensemble_propagation.py | ~692 | `method='L-BFGS-B'` |
-| **Optimizer iterations** | code/ensemble_propagation.py | ~694 | `maxiter: 300` |
-| **Multi-start grid** | code/ensemble_propagation.py | 689-696 | Loop ranges |
-| **Regularization** | code/ensemble_propagation.py | ~721 | `reg_weight = 0.001` |
-| **Constrained variations** | code/ensemble_propagation.py | 735-738 | `uniform(-0.05, 0.05)` |
-| **Timestep** | test_triangulation_constraint.py | 59 | `dt = 0.005` |
+| **Test scenario (true params)** | scripts/test_triangulation_constraint.py | 35-37 | `true_gamma_0`, `true_n_power`, `true_initial_speed` |
+| **Measurement times** | scripts/test_triangulation_constraint.py | 94 | `measurement_times` |
+| **Ensemble size (interactive)** | scripts/test_triangulation_constraint.py | 112, 119 | `n_members`, `n_ensemble` |
+| **Optimizer method** | helios_code/ensemble_propagation.py | ~692 | `method='L-BFGS-B'` |
+| **Optimizer iterations** | helios_code/ensemble_propagation.py | ~694 | `maxiter: 300` |
+| **Multi-start grid** | helios_code/ensemble_propagation.py | 689-696 | Loop ranges |
+| **Regularization** | helios_code/ensemble_propagation.py | ~721 | `reg_weight = 0.001` |
+| **Constrained variations** | helios_code/ensemble_propagation.py | 735-738 | `uniform(-0.05, 0.05)` |
+| **Timestep** | scripts/test_triangulation_constraint.py | 59 | `dt = 0.005` |
 
 ---
 
 ## Contact & Support
 
 For questions about this implementation, see:
-- Main codebase: `code/ensemble_propagation.py`
-- Test script: `test_triangulation_constraint.py`
-- Notebook demo: `notebooks/validation_run.ipynb` (Section 8)
+- Main codebase: `helios_code/ensemble_propagation.py`
+- Test script: `scripts/test_triangulation_constraint.py`
+- Notebook demo: `notebooks/HELIOS_Colab_Demo.ipynb`
