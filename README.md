@@ -4,7 +4,7 @@
 
 ## Overview
 
-HELIOS MVP is a comprehensive space weather early warning system designed to detect coronal mass ejections (CMEs) and predict their radiation hazard severity for spacecraft crew safety. This system combines classical detection algorithms with machine learning for risk assessment.
+HELIOS MVP is a conceptual space weather early warning system designed to detect coronal mass ejections (CMEs) and predict their radiation hazard severity for spacecraft crew safety. This system combines classical detection algorithms with machine learning for risk assessment. Note: This is a demonstration of the core algorithms and model architecture, not a fully operational system. The code is structured for clarity and educational purposes, with simplified assumptions and synthetic data.
 
 **Key Features:**
 - CME Detection using running-difference coronagraph analysis
