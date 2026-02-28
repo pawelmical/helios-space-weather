@@ -119,9 +119,9 @@ helios-space-weather/
 └── technical_documentation/       # Stakeholder documentation
     ├── README.md                  # Architecture overview
     ├── METRIC_PROVENANCE.md       # Metric derivation trace
-    ├── whitepaper/                # HELIOS whitepaper (user-provided)
-    ├── appendices/                # Technical appendices (user-provided)
-    └── pitchdeck/                 # Investor presentation (user-provided)
+    ├── whitepaper/                # HELIOS whitepaper 
+    ├── appendices/                # Technical appendices
+    └── pitchdeck/                 # Investor presentation 
 ```
 
 ## Usage Examples
