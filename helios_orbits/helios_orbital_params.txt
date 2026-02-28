@@ -1,0 +1,68 @@
+══════════════════════════════════════════════════════════════════════
+HELIOS CONSTELLATION - ORBITAL MECHANICS PARAMETERS
+Computed: 2026-02-28 07:55:08 UTC | CR3BP Sun-Earth | μ = 3.040357e-06
+══════════════════════════════════════════════════════════════════════
+
+L1 NODE - NORTHERN HALO ORBIT
+  Orbit type:         Northern L1 Halo (Richardson 1980 + differential correction)
+  Az amplitude:       249,993 km
+  Ay amplitude:       705,322 km
+  Ax amplitude:       220,908 km
+  Jacobi constant C:  3.00080980
+  Period T:           177.74 days
+  Stability index ν:  804.0085
+  Diverge time:       24.1 days  (without station-keeping)
+  SEZ margin (±5°):   9.51°  (minimum angular separation)
+  Eclipse fraction:   0.00%  (expected: 0%)
+
+  Corrected IC (normalized CR3BP units):
+    x0  = +9.8886529505e-01
+    y0  = +0.0000000000e+00
+    z0  = +1.8649804454e-03
+    vx0 = +0.0000000000e+00
+    vy0 = +9.3658736999e-03
+    vz0 = +0.0000000000e+00
+
+  Corrected IC (dimensional: km, km/s):
+    x0  = +1.479342e+08 km
+    y0  = +0.0 km
+    z0  = +2.790011e+05 km
+    vx0 = +0.000000e+00 km/s
+    vy0 = +2.7896890115e-01 km/s
+    vz0 = +0.000000e+00 km/s
+
+  SRP Perturbation:
+    SRP acceleration:  1.1337e-07 m/s²
+    SRP/CR3BP ratio:   0.0019%
+    SRP ΔV per year:   3.58 m/s/year
+
+  DELTA-V BUDGET (conservative, 20% margin):
+    HOI allocation:    50 m/s (chemical, bipropellant, Isp=310s)
+    Station-keeping:   60 m/s (electric, xenon, Isp=2500s, 12yr)
+    Contingency:       15 m/s
+    TOTAL:             125 m/s
+
+  PROPELLANT MASSES:
+    Chemical (HOI):    15.0 kg (bipropellant)
+    Xenon (SK, 10yr):  1.5 kg
+    Xenon (SK, 12yr):  1.8 kg
+
+  XENON MASS BREAKDOWN:
+    Baseline (40 m/s): 1.5 kg
+    Budget   (60 m/s): 2.2 kg
+    With 20% ullage:   2.7 kg
+    Note: 20% ullage margin covers tank residuals and loading tolerances.
+
+L4/L5 NODES - TADPOLE ORBITS
+  Orbit type:         Tadpole orbit (linearly stable)
+  Station-keeping:    1.5 m/s/year (Jupiter perturbation dominant)
+  TOI allocation:     50 m/s  (Tadpole Orbit Insertion, chemical bipropellant, Isp=310s)
+  SK budget (12yr):   26 m/s (with 20% margin)
+  Contingency:        10 m/s
+  TOTAL ΔV:           86 m/s
+  Dry mass:           808 kg
+  Prop (TOI, chem):   13.4 kg
+  Xenon (SK, 10yr):   0.5 kg
+  Xenon (SK, budget): 0.9 kg
+
+══════════════════════════════════════════════════════════════════════

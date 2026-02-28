@@ -288,7 +288,7 @@ def train_model(args) -> Tuple['HELIOSDualHeadModel', Dict]:
     else:
         class_weights = None
     loss_fn = create_loss_function(class_weights=class_weights)
-    optimizer = optim.AdamW(
+    optimizer = optim.Adam(
         model.parameters(),
         lr=args.lr,
         weight_decay=args.weight_decay
@@ -414,7 +414,7 @@ def main():
     )
     parser.add_argument(
         '--weight-decay', type=float, default=TRAINING_CONFIG['weight_decay'],
-        help='Weight decay for AdamW'
+        help='Weight decay for Adam'
     )
     parser.add_argument(
         '--val-split', type=float, default=TRAINING_CONFIG['validation_split'],

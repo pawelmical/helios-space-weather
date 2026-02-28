@@ -507,14 +507,15 @@ def generate_synthetic_dataset(
     # Target distribution: 35% Low, 30% Moderate, 20% High, 15% Extreme
     n_extreme = max(int(n_events * 0.15), DATASET_CONFIG.get('min_extreme_events', 500))
     n_high = int(n_events * 0.20)
-    n_bastille_aug = 100  # Add Bastille Day augmentations
-    n_regular = n_events - n_extreme - n_high - n_bastille_aug
+    # NOTE: Bastille Day augmentation removed — injecting near-copies of the
+    # sole validation target into training data constitutes data leakage and
+    # inflates validation metrics. The model must generalise without seeing it.
+    n_regular = n_events - n_extreme - n_high
 
     print(f"  Generating stratified dataset:")
     print(f"    Regular events: {n_regular}")
     print(f"    High events: {n_high}")
     print(f"    Extreme events: {n_extreme}")
-    print(f"    Bastille Day augmentations: {n_bastille_aug}")
 
     # 1. Generate regular events (natural distribution)
     for i in range(n_regular):
@@ -540,23 +541,6 @@ def generate_synthetic_dataset(
         severity_list.append(event.severity_class)
         event_ids.append(event.event_id)
 
-    # 4. Add BASTILLE DAY augmentations (key for validation target)
-    # These are slight variations of Bastille Day to anchor the model
-    from NeuralNetwork_ML.features import create_bastille_day_features
-    bastille_features = create_bastille_day_features().to_array()
-    for i in range(n_bastille_aug):
-        # Add small noise to features to create variations
-        noise = np.random.normal(0, 0.02, bastille_features.shape)
-        noisy_features = bastille_features.copy()
-        # Only add noise to non-critical features (not speed/width)
-        noisy_features[4:] = bastille_features[4:] * (1 + noise[4:])
-        features_list.append(noisy_features.astype(np.float32))
-        # Bz with small variation around -60
-        bz_val = -60.0 + np.random.normal(0, 2.0)
-        bz_list.append(np.clip(bz_val, -70, -50))
-        severity_list.append(3)  # Extreme
-        event_ids.append(f"bastille_aug_{i:03d}")
-
     return (
         np.array(features_list, dtype=np.float32),
         np.array(bz_list, dtype=np.float32),
@@ -571,25 +555,23 @@ def generate_synthetic_dataset(
 
 # Well-characterized historical events with estimated Bz values
 # References: CDAW CME catalog, ACE/DSCOVR measurements
+# NOTE: This event catalog serves the modular pipeline (train.py).
+# run_final_validation.py has its own independent event database.
+# Parameter differences (e.g. initial vs arrival speed) are expected.
 HISTORICAL_EVENTS = [
-    {
-        'event_id': 'bastille_day_2000',
-        'date': '2000-07-14',
-        'speed': 1674,
-        'width': 360,  # Full halo
-        'bz': -60,
-        'source_lat': 22,
-        'source_lon': 7,
-        'notes': 'X5.7 flare, one of the largest of Solar Cycle 23'
-    },
+    # NOTE: Bastille Day 2000 is intentionally EXCLUDED from this list.
+    # It is the sole validation/showcase target — including it here would
+    # constitute data leakage for the modular pipeline (train.py).
+    # For the production pipeline, see run_final_validation.py which has
+    # its own explicit train/test/showcase split.
     {
         'event_id': 'halloween_2003_1',
         'date': '2003-10-28',
         'speed': 2459,
         'width': 360,
-        'bz': -45,
-        'source_lat': -16,
-        'source_lon': 8,
+        'bz': -50,
+        'source_lat': 16,
+        'source_lon': -8,
         'notes': 'X17.2 flare, Halloween storms'
     },
     {
@@ -597,7 +579,7 @@ HISTORICAL_EVENTS = [
         'date': '2003-10-29',
         'speed': 2029,
         'width': 360,
-        'bz': -35,
+        'bz': -49,
         'source_lat': -15,
         'source_lon': 2,
         'notes': 'X10 flare, second Halloween CME'
@@ -655,11 +637,11 @@ HISTORICAL_EVENTS = [
     {
         'event_id': 'nov_2001',
         'date': '2001-11-04',
-        'speed': 1810,
+        'speed': 1100,
         'width': 360,
-        'bz': -38,
-        'source_lat': 6,
-        'source_lon': 18,
+        'bz': -30,
+        'source_lat': 18,
+        'source_lon': 12,
         'notes': 'X1.0 flare with fast CME'
     },
     {
@@ -667,9 +649,9 @@ HISTORICAL_EVENTS = [
         'date': '2006-12-13',
         'speed': 1774,
         'width': 360,
-        'bz': -35,
-        'source_lat': -6,
-        'source_lon': 23,
+        'bz': -48,
+        'source_lat': 6,
+        'source_lon': 38,
         'notes': 'X3.4 flare, first STEREO observation'
     },
     # More moderate events for class balance

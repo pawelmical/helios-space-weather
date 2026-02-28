@@ -4,7 +4,7 @@ HELIOS Neural Network ML Module
 AI-based Bz prediction and severity classification for CME geoeffectiveness.
 
 Architecture:
-    Input (16 features) -> Shared Encoder [16->64->128->64]
+    Input (16 features) -> Shared Encoder [16->128->256->128->64]
                                |
               +---------------+---------------+
               |                               |

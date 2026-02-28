@@ -30,7 +30,7 @@ Key design decisions:
     - Extreme threshold aligns with NASA-STD-3001 30-day limit
 
 References:
-    - NASA-STD-3001 Vol.1 Rev A (2022)
+    - NASA-STD-3001 Vol.1 Rev C (2023)
     - NCRP Report 132
     - Townsend et al. 2003
     - Kim et al. 2015
@@ -39,6 +39,20 @@ References:
 Author: HELIOS Team
 Date: February 2026
 """
+
+# ============================================================================
+# IMPORTANT: DOSIMETRY MODULE — NOT THE MVP CLASSIFICATION SYSTEM
+# ============================================================================
+# This module implements the physics-based dose estimation formula used for:
+#   1. Physical model cross-validation (Section B.5.2)
+#   2. Operational dose assessment (planned for flight system)
+#   3. NASA-STD-3001 compliance verification
+#
+# The MVP validation (Table B.4) uses simplified Bz-threshold classification
+# defined in run_final_validation.py for training-label consistency.
+# The dose-based system defined here is used for post-prediction physical
+# validation (e.g., Bastille Day 985 mSv calculation).
+# ============================================================================
 
 import numpy as np
 from typing import Tuple, Optional

@@ -3,8 +3,10 @@ HELIOS Neural Network Model
 ============================
 Dual-head architecture for Bz regression and severity classification.
 
+Architecture uses LayerNorm + GELU activation (validated configuration).
+
 Architecture:
-    Input (16) -> Shared Encoder [16->64->128->64]
+    Input (16) -> Shared Encoder [16->128->256->128->64]
                       |
          +-----------+-----------+
          |                       |
@@ -17,7 +19,11 @@ Loss Function:
     Where:
     - L_bz: Heteroscedastic regression loss
     - L_severity: Cross-entropy classification loss
-    - alpha = 0.7, beta = 0.3
+    - alpha = 0.5, beta = 0.5
+
+NOTE: This module implements FEEDFORWARD neural networks processing 16D
+feature vectors. CNN-based coronagraph image processing is planned for
+the operational system but is not implemented in this MVP.
 
 NOTE: PyTorch imports are deferred to avoid conflict with the 'code' module
 in the parent directory. torch is imported when classes are instantiated.
@@ -93,7 +99,7 @@ if HAS_TORCH:
         """
         Shared feature encoder.
 
-        Architecture: 16 -> 64 -> 128 -> 64 with ReLU activations.
+        Architecture: 16 -> 128 -> 256 -> 128 -> 64 with LayerNorm + GELU activations.
         """
 
         def __init__(
@@ -115,7 +121,7 @@ if HAS_TORCH:
             super().__init__()
 
             if hidden_dims is None:
-                hidden_dims = MODEL_CONFIG['encoder_layers'][1:]  # [64, 128, 64]
+                hidden_dims = MODEL_CONFIG['encoder_layers'][1:]  # [128, 256, 128, 64]
 
             layers = []
             prev_dim = input_dim
@@ -123,8 +129,8 @@ if HAS_TORCH:
             for dim in hidden_dims:
                 layers.extend([
                     nn.Linear(prev_dim, dim),
-                    nn.BatchNorm1d(dim),
-                    nn.ReLU(),
+                    nn.LayerNorm(dim),
+                    nn.GELU(),
                     nn.Dropout(dropout)
                 ])
                 prev_dim = dim
@@ -155,12 +161,14 @@ if HAS_TORCH:
 
         Outputs both mean and log-variance for heteroscedastic loss.
         This allows the model to learn input-dependent uncertainty.
+        Uses LayerNorm + GELU activation (validated configuration).
         """
 
         def __init__(
             self,
             input_dim: int = 64,
-            hidden_dim: int = 32
+            hidden_dim: int = 32,
+            dropout: float = 0.2
         ):
             """
             Parameters
@@ -169,11 +177,14 @@ if HAS_TORCH:
                 Input dimension from encoder
             hidden_dim : int
                 Hidden layer dimension
+            dropout : float
+                Dropout rate (default: 0.2)
             """
             super().__init__()
 
             self.fc1 = nn.Linear(input_dim, hidden_dim)
-            self.bn1 = nn.BatchNorm1d(hidden_dim)
+            self.ln1 = nn.LayerNorm(hidden_dim)
+            self.dropout = nn.Dropout(dropout)
             self.fc_mean = nn.Linear(hidden_dim, 1)
             self.fc_logvar = nn.Linear(hidden_dim, 1)
 
@@ -193,7 +204,7 @@ if HAS_TORCH:
             log_var : torch.Tensor
                 Predicted log variance (batch_size, 1)
             """
-            h = F.relu(self.bn1(self.fc1(x)))
+            h = self.dropout(F.gelu(self.ln1(self.fc1(x))))
             mean = self.fc_mean(h)
             log_var = self.fc_logvar(h)
             return mean, log_var
@@ -204,13 +215,15 @@ if HAS_TORCH:
         Severity classification head.
 
         4-class output: Low, Moderate, High, Extreme
+        Uses LayerNorm + GELU activation (validated configuration).
         """
 
         def __init__(
             self,
             input_dim: int = 64,
             hidden_dim: int = 32,
-            n_classes: int = 4
+            n_classes: int = 4,
+            dropout: float = 0.2
         ):
             """
             Parameters
@@ -221,11 +234,14 @@ if HAS_TORCH:
                 Hidden layer dimension
             n_classes : int
                 Number of output classes (default: 4)
+            dropout : float
+                Dropout rate (default: 0.2)
             """
             super().__init__()
 
             self.fc1 = nn.Linear(input_dim, hidden_dim)
-            self.bn1 = nn.BatchNorm1d(hidden_dim)
+            self.ln1 = nn.LayerNorm(hidden_dim)
+            self.dropout = nn.Dropout(dropout)
             self.fc_out = nn.Linear(hidden_dim, n_classes)
 
         def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -242,7 +258,7 @@ if HAS_TORCH:
             logits : torch.Tensor
                 Class logits (batch_size, n_classes)
             """
-            h = F.relu(self.bn1(self.fc1(x)))
+            h = self.dropout(F.gelu(self.ln1(self.fc1(x))))
             logits = self.fc_out(h)
             return logits
 
@@ -252,6 +268,8 @@ if HAS_TORCH:
         Complete dual-head model for Bz and severity prediction.
 
         Multi-task learning with shared encoder.
+        Architecture matches DualHeadBzModel in run_final_validation.py
+        so that helios_final_model_proper.pth can be loaded directly.
         """
 
         def __init__(
@@ -278,13 +296,25 @@ if HAS_TORCH:
             if encoder_dims is None:
                 encoder_dims = MODEL_CONFIG['encoder_layers'][1:]
 
-            self.encoder = SharedEncoder(input_dim, encoder_dims, dropout)
-            encoder_output_dim = self.encoder.output_dim
+            # Encoder: flat nn.Sequential (keys: encoder.0, encoder.1, ...)
+            layers = []
+            prev = input_dim
+            for h in encoder_dims:
+                layers += [nn.Linear(prev, h), nn.LayerNorm(h),
+                           nn.GELU(), nn.Dropout(dropout)]
+                prev = h
+            self.encoder = nn.Sequential(*layers)
 
-            self.bz_head = BzRegressionHead(encoder_output_dim)
-            self.severity_head = SeverityClassificationHead(
-                encoder_output_dim,
-                n_classes=n_severity_classes
+            # Bz head: nn.Sequential (keys: bz_head.0, bz_head.3)
+            self.bz_head = nn.Sequential(
+                nn.Linear(encoder_dims[-1], 32), nn.GELU(),
+                nn.Dropout(dropout), nn.Linear(32, 2)
+            )
+
+            # Severity head: nn.Sequential (keys: sev_head.0, sev_head.3)
+            self.sev_head = nn.Sequential(
+                nn.Linear(encoder_dims[-1], 32), nn.GELU(),
+                nn.Dropout(dropout), nn.Linear(32, n_severity_classes)
             )
 
         def forward(
@@ -302,16 +332,15 @@ if HAS_TORCH:
             Returns
             -------
             bz_mean : torch.Tensor
-                Predicted Bz mean (batch_size, 1)
+                Predicted Bz mean (batch_size,)
             bz_logvar : torch.Tensor
-                Predicted Bz log variance (batch_size, 1)
+                Predicted Bz log variance (batch_size,)
             severity_logits : torch.Tensor
                 Severity class logits (batch_size, 4)
             """
             encoded = self.encoder(x)
-            bz_mean, bz_logvar = self.bz_head(encoded)
-            severity_logits = self.severity_head(encoded)
-            return bz_mean, bz_logvar, severity_logits
+            bz_out = self.bz_head(encoded)
+            return bz_out[:, 0], bz_out[:, 1], self.sev_head(encoded)
 
         def predict(
             self,
@@ -409,17 +438,17 @@ if HAS_TORCH:
 
         def __init__(
             self,
-            alpha: float = 0.7,
-            beta: float = 0.3,
+            alpha: float = 0.5,
+            beta: float = 0.5,
             class_weights: Optional[torch.Tensor] = None
         ):
             """
             Parameters
             ----------
             alpha : float
-                Weight for Bz regression loss (default: 0.7)
+                Weight for Bz regression loss (default: 0.5)
             beta : float
-                Weight for severity classification loss (default: 0.3)
+                Weight for severity classification loss (default: 0.5)
             class_weights : torch.Tensor, optional
                 Class weights for imbalanced classification
             """

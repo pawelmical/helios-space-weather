@@ -35,9 +35,16 @@ venv\Scripts\activate  # Windows
 # Install dependencies
 pip install -r requirements.txt
 
-# Run the complete MVP demo
+# Run the complete MVP demo (uses pre-trained model, ~5 seconds)
 python scripts/run_complete_mvp.py
 ```
+
+> **Note — two scripts, two purposes:**
+> - `run_complete_mvp.py` — loads the committed pre-trained model and runs the full
+>   Bastille Day 2000 TMR pipeline. This is what you want for the demo.
+> - `run_final_validation.py` — retrains the entire 3-seed ensemble from scratch.
+>   Only needed if you want to reproduce the training. Requires ~30–60 min and a
+>   GPU is strongly recommended. Running this will overwrite `output/helios_final_model_proper.pth`.
 
 ## Project Structure
 
@@ -71,10 +78,9 @@ helios-space-weather/
 │   └── validation.py              # Model validation
 │
 ├── scripts/
-│   ├── run_complete_mvp.py        # Main MVP demo
-│   ├── run_final_validation.py    # Train model + generate whitepaper metrics (v2 pipeline)
-│   ├── run_historical_validation.py # (legacy - replaced by run_final_validation.py)
-│   └── test_triangulation_constraint.py # Triangulation verification
+│   ├── run_complete_mvp.py        # ⚡ DEMO: load saved model, run Bastille Day TMR pipeline (~5s)
+│   ├── run_final_validation.py    # 🔁 RETRAIN: train 3-seed ensemble from scratch (GPU recommended, ~30-60 min)
+│   └── test_triangulation_constraint.py # Triangulation geometry verification
 │
 ├── notebooks/
 │   └── HELIOS_Colab_Demo.ipynb    # Google Colab demo
@@ -87,9 +93,10 @@ helios-space-weather/
 │   ├── helios_final_model_proper.pth  # Trained model
 │   ├── final_validation_results.json  # Gold standard metrics
 │   ├── mvp_results/                   # Validation run outputs
-│   ├── geometry_verification.csv      # Geometry validation
-│   ├── coverage_analysis.csv          # Coverage analysis
-│   ├── timing_advantage.csv           # Timing metrics
+│   ├── geometry_verification.csv      # Geometry validation results
+│   ├── coverage_analysis.csv          # L1/L4/L5 sky-coverage analysis (whitepaper Table 2)
+│   ├── spatial_resolution_sweep.csv   # Triangulation resolution vs baseline (whitepaper Figure)
+│   ├── timing_advantage.csv           # Detection timing vs L1-only baseline
 │   └── ...                            # Additional CSV outputs
 │
 └── docs/                          # Technical documentation
@@ -147,11 +154,11 @@ print(f"Spatial resolution: {result.delta_r_km/1e6:.2f} million km")
 
 | Metric | Value | Description |
 |--------|-------|-------------|
-| Detection Confidence | 93.0% | CME detection rate |
-| False Positive Rate | 5.0% | False alarm rate |
-| Bz MAE | 6.5 nT | Mean absolute error |
+| Severity Accuracy | 83.3% | 4-class classification rate |
+| Improvement vs Baseline | 36% | Over geometric estimate |
+| Bz MAE | 6.3 nT | Mean absolute error |
 | Hazard Accuracy | 83.3% | Severity classification |
-| Bastille Day Error | 4.6 nT | Showcase event accuracy |
+| Bastille Day Error | 5.2 nT | Showcase event accuracy |
 
 ## Model Architecture
 

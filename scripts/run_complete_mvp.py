@@ -39,7 +39,7 @@ sys.path.insert(0, PROJECT_ROOT)
 # Import HELIOS modules (non-PyTorch first)
 from NeuralNetwork_ML.features import create_bastille_day_features
 from NeuralNetwork_ML.severity import calculate_dose, dose_to_severity_class
-from NeuralNetwork_ML.config import SEVERITY_CONFIG, VALIDATION_TARGETS
+from NeuralNetwork_ML.config import SEVERITY_CONFIG, VALIDATION_TARGETS, BZ_THRESHOLDS, bz_to_severity
 from NeuralNetwork_ML.tmr_voting import SatellitePrediction, tmr_vote
 from NeuralNetwork_ML.warning_generator import (
     generate_crew_warning,
@@ -49,20 +49,9 @@ from NeuralNetwork_ML.warning_generator import (
 )
 
 
-# Severity names and thresholds (matching the trained model)
+# Severity names (BZ_THRESHOLDS and bz_to_severity imported from NeuralNetwork_ML.config
+# as the single source of truth — see NeuralNetwork_ML/config.py)
 SEVERITY_NAMES = ['Low', 'Moderate', 'High', 'Extreme']
-BZ_THRESHOLDS = (-30.0, -20.0, -10.0)  # Extreme: ≤-30, High: ≤-20, Moderate: ≤-10
-
-
-def bz_to_severity(bz: float) -> int:
-    """Deterministic Bz -> severity index (0=Low .. 3=Extreme)."""
-    if bz <= BZ_THRESHOLDS[0]:
-        return 3  # Extreme
-    if bz <= BZ_THRESHOLDS[1]:
-        return 2  # High
-    if bz <= BZ_THRESHOLDS[2]:
-        return 1  # Moderate
-    return 0  # Low
 
 
 def _normal_cdf(x: float, mu: float, sigma: float) -> float:

@@ -1,6 +1,6 @@
 # HELIOS MVP Validation Report
 
-**Generated:** 2026-02-15T12:05:48.647784
+**Generated:** 2026-02-27T21:07:05.613099
 **Version:** 1.0.0
 
 ---
@@ -22,9 +22,9 @@
 
 | Satellite | Bz (nT) | Uncertainty | Severity | Confidence |
 |-----------|---------|-------------|----------|------------|
-| L1 | -55.3 | ±17.3 nT | Extreme | 92.8% |
-| L4 | -56.2 | ±20.9 nT | Extreme | 89.6% |
-| L5 | -54.7 | ±17.4 nT | Extreme | 92.2% |
+| L1 | -55.2 | ±17.3 nT | Extreme | 92.8% |
+| L4 | -56.0 | ±19.7 nT | Extreme | 90.7% |
+| L5 | -53.3 | ±17.0 nT | Extreme | 91.6% |
 
 ---
 
@@ -34,9 +34,9 @@
 |--------|-------|
 | **Vote Type** | 3/3 |
 | **Status** | FULL_FUSION |
-| **Consensus Bz** | -55.4 ±0.6 nT |
+| **Consensus Bz** | -54.9 ±1.1 nT |
 | **Consensus Severity** | Extreme (Class 3) |
-| **Bz Spread** | 1.5 nT |
+| **Bz Spread** | 2.7 nT |
 | **Exact Agreement** | Yes |
 | **Within ±1 Tolerance** | Yes |
 
@@ -54,9 +54,9 @@
 
 | Result | Value |
 |--------|-------|
-| **Calculated Dose** | 998.0 mSv |
+| **Calculated Dose** | 984.9 mSv |
 | **Physical Severity** | Extreme (Class 3) |
-| **NASA 30-day Limit** | 399.2% |
+| **NASA 30-day Limit** | 394.0% |
 
 ---
 
@@ -67,7 +67,7 @@
 **Critical:** YES - IMMEDIATE ACTION REQUIRED
 
 **Message:**
-> EMERGENCY: EXTREME RADIATION EVENT. ALL EVA OPERATIONS MUST CEASE IMMEDIATELY. Deploy emergency shielding. Predicted dose: 998 mSv (399% of NASA 30-day limit).
+> EMERGENCY: EXTREME RADIATION EVENT. ALL EVA OPERATIONS MUST CEASE IMMEDIATELY. Deploy emergency shielding. Predicted dose: 985 mSv (394% of NASA 30-day limit).
 
 **Time to Impact:** 24.8 hours
 
@@ -88,8 +88,8 @@
 | Metric | Value | Status |
 |--------|-------|--------|
 | Ground Truth Bz | -60.0 nT | Reference |
-| Predicted Bz | -55.4 nT | - |
-| Bz Error | 4.6 nT (7.6%) | ✅ PASS |
+| Predicted Bz | -54.9 nT | - |
+| Bz Error | 5.1 nT (8.6%) | ✅ PASS |
 | Severity Correct | 3 vs 3 | ✅ PASS |
 | ML-Physics Consistent | - | ✅ PASS |
 
@@ -104,7 +104,7 @@ The HELIOS MVP successfully demonstrates:
 - TMR voting with majority consensus
 - Physical model dose calculation
 - Automated crew warning generation
-- Bastille Day 2000 prediction within acceptable error (4.6 nT)
+- Bastille Day 2000 prediction within acceptable error (5.1 nT)
 
 ---
 

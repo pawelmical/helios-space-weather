@@ -27,6 +27,10 @@ from NeuralNetwork_ML.config import VALIDATION_TARGETS, BZ_CONFIG, SEVERITY_CONF
 from NeuralNetwork_ML.features import CMEFeatures, create_bastille_day_features
 from NeuralNetwork_ML.preprocessing import FeatureNormalizer, BzNormalizer
 
+# Union type hint alias (dict = z-score scaler from production checkpoint)
+from typing import Union
+_NormalizerT = Union[FeatureNormalizer, dict]
+
 # Check if PyTorch is available without importing it
 def _check_torch():
     try:
@@ -70,21 +74,35 @@ def get_bastille_day_feature_vector() -> np.ndarray:
 
 def validate_model(
     model,
-    feature_normalizer: FeatureNormalizer,
-    bz_normalizer: BzNormalizer,
+    feature_normalizer: '_NormalizerT',
+    bz_normalizer: Optional[BzNormalizer] = None,
     device: str = 'cpu'
 ) -> Dict:
     """
     Validate model on Bastille Day 2000 event.
 
+    Supports two checkpoint formats:
+
+    **Production checkpoint** (``run_final_validation.py`` / ``run_complete_mvp.py``):
+        - ``feature_normalizer``: dict with keys ``'mean'`` and ``'std'`` (z-score arrays)
+        - ``bz_normalizer``: ``None``  — model already outputs raw nT values
+
+    **Modular checkpoint** (``NeuralNetwork_ML/train.py``):
+        - ``feature_normalizer``: :class:`~NeuralNetwork_ML.preprocessing.FeatureNormalizer`
+        - ``bz_normalizer``: :class:`~NeuralNetwork_ML.preprocessing.BzNormalizer`
+
     Parameters
     ----------
     model : HELIOSDualHeadModel
         Trained model
-    feature_normalizer : FeatureNormalizer
-        Feature normalizer used during training
-    bz_normalizer : BzNormalizer
-        Bz normalizer used during training
+    feature_normalizer : FeatureNormalizer or dict
+        Feature normalizer used during training.  Pass a dict with keys
+        ``'mean'`` and ``'std'`` (numpy arrays) for the production z-score
+        scaler, or a :class:`FeatureNormalizer` instance for the modular
+        pipeline.
+    bz_normalizer : BzNormalizer, optional
+        Bz normalizer used during training.  Pass ``None`` (default) when the
+        model was trained with the production pipeline (outputs raw nT).
     device : str
         Device for inference
 
@@ -106,20 +124,36 @@ def validate_model(
     features = create_bastille_day_features()
     feature_array = features.to_array()
 
-    # Normalize
-    feature_norm = feature_normalizer.transform(feature_array)
-    feature_tensor = torch.from_numpy(feature_norm).float().unsqueeze(0).to(device)
+    # ── Normalize features ──────────────────────────────────────────────────
+    # Two supported normalizer formats:
+    #   1. dict {'mean': ..., 'std': ...}  — z-score (production checkpoint)
+    #   2. FeatureNormalizer instance      — min-max (modular checkpoint)
+    if isinstance(feature_normalizer, dict):
+        # Production z-score scaler
+        mean = np.array(feature_normalizer['mean'], dtype=np.float32)
+        std = np.array(feature_normalizer['std'], dtype=np.float32)
+        std = np.where(std < 1e-8, 1.0, std)  # avoid div-by-zero
+        feature_norm = (feature_array - mean) / std
+    else:
+        feature_norm = feature_normalizer.transform(feature_array)
+
+    feature_tensor = torch.from_numpy(feature_norm.astype(np.float32)).unsqueeze(0).to(device)
 
     # Predict
     predictions = model.predict(feature_tensor)
 
-    # Denormalize Bz
-    bz_pred_norm = predictions['bz_mean'].cpu().numpy().squeeze()
-    bz_std_norm = predictions['bz_std'].cpu().numpy().squeeze()
+    # ── Denormalize Bz ──────────────────────────────────────────────────────
+    bz_pred_raw = predictions['bz_mean'].cpu().numpy().squeeze()
+    bz_std_raw  = predictions['bz_std'].cpu().numpy().squeeze()
 
-    bz_pred = bz_normalizer.inverse_transform(np.array([bz_pred_norm]))[0]
-    # Uncertainty scaling (approximate)
-    bz_std = bz_std_norm * (BZ_CONFIG['bz_max'] - BZ_CONFIG['bz_min'])
+    if bz_normalizer is None:
+        # Production pipeline: predictions are already in raw nT
+        bz_pred = float(bz_pred_raw)
+        bz_std  = float(bz_std_raw)   # std also in nT (from heteroscedastic head)
+    else:
+        # Modular pipeline: predictions are normalized to [0, 1]
+        bz_pred = float(bz_normalizer.inverse_transform(np.array([bz_pred_raw]))[0])
+        bz_std  = float(bz_std_raw * (BZ_CONFIG['bz_max'] - BZ_CONFIG['bz_min']))
 
     severity_class = predictions['severity_class'].cpu().numpy().squeeze()
     severity_probs = predictions['severity_probs'].cpu().numpy().squeeze()
@@ -132,7 +166,7 @@ def validate_model(
     # Calculate metrics
     bz_error = abs(bz_pred - bz_true)
     bz_error_percent = 100 * bz_error / abs(bz_true)
-    severity_correct = (severity_class == severity_true)
+    severity_correct = (int(severity_class) == severity_true)
 
     # Determine if validation passes
     bz_passes = bz_error <= targets['bz_tolerance']
@@ -220,8 +254,8 @@ def compute_validation_metrics(
     test_features: np.ndarray,
     test_bz: np.ndarray,
     test_severity: np.ndarray,
-    feature_normalizer: FeatureNormalizer,
-    bz_normalizer: BzNormalizer,
+    feature_normalizer: '_NormalizerT',
+    bz_normalizer: Optional[BzNormalizer] = None,
     device: str = 'cpu'
 ) -> Dict:
     """
@@ -234,13 +268,14 @@ def compute_validation_metrics(
     test_features : np.ndarray
         Test features (n_samples, 16)
     test_bz : np.ndarray
-        Test Bz values (n_samples,)
+        Test Bz values in **raw nT** (n_samples,)
     test_severity : np.ndarray
         Test severity classes (n_samples,)
-    feature_normalizer : FeatureNormalizer
-        Feature normalizer
-    bz_normalizer : BzNormalizer
-        Bz normalizer
+    feature_normalizer : FeatureNormalizer or dict
+        Feature normalizer.  Dict with keys ``'mean'``/``'std'`` = z-score
+        (production); :class:`FeatureNormalizer` instance = min-max (modular).
+    bz_normalizer : BzNormalizer, optional
+        Bz normalizer. Pass ``None`` (default) when the model outputs raw nT.
     device : str
         Device for inference
 
@@ -258,17 +293,28 @@ def compute_validation_metrics(
     model.eval()
     model.to(device)
 
-    # Normalize features
-    features_norm = feature_normalizer.transform(test_features)
-    features_tensor = torch.from_numpy(features_norm).float().to(device)
+    # ── Normalize features ──────────────────────────────────────────────────
+    if isinstance(feature_normalizer, dict):
+        mean = np.array(feature_normalizer['mean'], dtype=np.float32)
+        std  = np.array(feature_normalizer['std'],  dtype=np.float32)
+        std  = np.where(std < 1e-8, 1.0, std)
+        features_norm = ((test_features.astype(np.float32) - mean) / std)
+    else:
+        features_norm = feature_normalizer.transform(test_features)
+
+    features_tensor = torch.from_numpy(features_norm.astype(np.float32)).to(device)
 
     # Predict
     with torch.no_grad():
         predictions = model.predict(features_tensor)
 
-    # Denormalize Bz predictions
-    bz_pred_norm = predictions['bz_mean'].cpu().numpy().squeeze()
-    bz_pred = bz_normalizer.inverse_transform(bz_pred_norm)
+    # ── Denormalize Bz predictions ──────────────────────────────────────────
+    bz_pred_raw = predictions['bz_mean'].cpu().numpy().squeeze()
+
+    if bz_normalizer is None:
+        bz_pred = bz_pred_raw  # already in nT
+    else:
+        bz_pred = bz_normalizer.inverse_transform(bz_pred_raw)
 
     severity_pred = predictions['severity_class'].cpu().numpy()
 

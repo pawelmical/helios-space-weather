@@ -271,9 +271,13 @@ def compute_line_of_sight(
     
     # Position angle is measured from North (z) toward West (y)
     # Latitude is elevation from ecliptic
+    # Line-of-sight components in local frame:
+    #   los_x: along Sun direction (cos lat, as projection into ecliptic)
+    #   los_y: perpendicular in ecliptic plane (position angle rotation)
+    #   los_z: out of ecliptic plane (elevation = latitude only)
     los_x = np.cos(lat_rad)
     los_y = np.cos(lat_rad) * np.sin(pa_rad)
-    los_z = np.sin(lat_rad) * np.cos(pa_rad) + np.sin(lat_rad)
+    los_z = np.sin(lat_rad)  # Fixed (Feb 2026): only depends on latitude
     
     # Transform to heliocentric coordinates
     los = los_x * x_local + los_y * y_local + los_z * z_local

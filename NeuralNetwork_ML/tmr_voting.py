@@ -3,10 +3,10 @@ HELIOS Triple Modular Redundancy (TMR) Voting System
 =====================================================
 Implements redundant inference and voting logic for crew safety.
 
-Architecture (per primary_nominalops.drawio diagram):
-    L1 Inference ─┐
-    L4 Inference ─┼─> TMR Voting Diamond ─> Consensus
-    L5 Inference ─┘
+Architecture (3 onboard model inference passes via MC dropout):
+    Model_A Inference ─┐
+    Model_B Inference ─┼─> TMR Voting Diamond ─> Consensus
+    Model_C Inference ─┘
 
 Vote Types:
     3/3: Full Fusion (highest confidence)
@@ -42,8 +42,8 @@ SEVERITY_NAMES = SEVERITY_CONFIG['class_names']  # ['Low', 'Moderate', 'High', '
 
 @dataclass
 class SatellitePrediction:
-    """Single satellite inference result."""
-    satellite_id: str           # "L1", "L4", "L5"
+    """Single onboard model inference result (labeled as satellite prediction for operational context)."""
+    satellite_id: str           # "Model_A", "Model_B", "Model_C"
     bz_mean: float              # Predicted Bz in nT
     bz_std: float               # Uncertainty (std dev)
     severity_class: int         # 0-3
@@ -76,95 +76,79 @@ class TMRConsensus:
         return d
 
 
-def enable_mc_dropout(model):
-    """
-    Enable dropout layers for Monte Carlo inference.
+# ==============================================================================
+# DEPRECATED LEGACY CODE - DO NOT USE IN PRODUCTION
+# ==============================================================================
+# The following functions were part of an early prototype (Jan-Feb 2026) that
+# used Monte Carlo dropout to simulate ensemble behavior from a single model.
+#
+# REASON FOR DEPRECATION:
+# This approach has been REPLACED by the production TMR system which uses
+# three independently-trained models loaded from ensemble checkpoint (.pth).
+# See run_complete_mvp.py for current implementation with load_ensemble().
+#
+# These functions are preserved for historical reference and transparency.
+# ==============================================================================
 
-    This puts dropout layers in training mode while keeping
-    batch normalization in eval mode.
-    """
-    for name, module in model.named_modules():
-        classname = module.__class__.__name__
-        if 'Dropout' in classname:
-            module.train()
+# def enable_mc_dropout(model):
+#     """
+#     [DEPRECATED] Enable dropout layers for Monte Carlo inference.
+#     """
+#     for name, module in model.named_modules():
+#         classname = module.__class__.__name__
+#         if 'Dropout' in classname:
+#             module.train()
+#
+#
+# def run_mc_inference(
+#     model,
+#     feature_tensor,
+#     bz_normalizer=None,
+#     n_samples: int = 3,
+#     device: str = 'cpu'
+# ) -> List[SatellitePrediction]:
+#     """
+#     [DEPRECATED] Run Monte Carlo dropout inference.
+#
+#     This function simulated three models using dropout stochasticity.
+#     REPLACED by true ensemble inference in production.
+#     """
+#     import torch
+#     MODEL_IDS = ["Model_A", "Model_B", "Model_C"]
+#     model.to(device)
+#     model.eval()
+#     enable_mc_dropout(model)
+#     predictions = []
+#     with torch.no_grad():
+#         for i in range(n_samples):
+#             bz_mean, bz_logvar, severity_logits = model(feature_tensor)
+#             bz_norm = bz_mean.cpu().numpy().squeeze()
+#             bz_logvar_val = bz_logvar.cpu().numpy().squeeze()
+#             bz_std_norm = np.exp(0.5 * bz_logvar_val)
+#             if bz_normalizer is None:
+#                 bz_nT = float(bz_norm)
+#                 bz_std_nT = float(bz_std_norm)
+#             else:
+#                 bz_nT = float(bz_normalizer.inverse_transform(np.array([bz_norm]))[0])
+#                 bz_range = bz_normalizer.bz_max - bz_normalizer.bz_min
+#                 bz_std_nT = float(bz_std_norm * bz_range)
+#             probs = torch.softmax(severity_logits, dim=-1).cpu().numpy().squeeze()
+#             sev_class = int(np.argmax(probs))
+#             sev_conf = float(probs[sev_class])
+#             predictions.append(SatellitePrediction(
+#                 satellite_id=MODEL_IDS[i] if i < len(MODEL_IDS) else f"Model_{i}",
+#                 bz_mean=float(bz_nT),
+#                 bz_std=bz_std_nT,
+#                 severity_class=sev_class,
+#                 severity_name=SEVERITY_NAMES[sev_class],
+#                 severity_confidence=sev_conf,
+#                 severity_probs=probs.tolist()
+#             ))
+#     return predictions
 
-
-def run_mc_inference(
-    model,
-    feature_tensor,
-    bz_normalizer,
-    n_samples: int = 3,
-    device: str = 'cpu'
-) -> List[SatellitePrediction]:
-    """
-    Run Monte Carlo dropout inference to simulate 3 satellites.
-
-    Uses dropout during inference to produce multiple predictions
-    that simulate the variance between different observation platforms.
-
-    Parameters
-    ----------
-    model : HELIOSDualHeadModel
-        Trained PyTorch model
-    feature_tensor : torch.Tensor
-        Normalized features with shape (1, 16)
-    bz_normalizer : BzNormalizer
-        For denormalizing Bz predictions from [0,1] to nT
-    n_samples : int
-        Number of MC samples (default: 3 for L1, L4, L5)
-    device : str
-        Compute device ('cpu' or 'cuda')
-
-    Returns
-    -------
-    predictions : List[SatellitePrediction]
-        One prediction per "satellite"
-    """
-    import torch
-
-    SATELLITE_IDS = ["L1", "L4", "L5"]
-
-    model.to(device)
-    model.eval()  # Start in eval mode
-    enable_mc_dropout(model)  # Then enable dropout only
-
-    predictions = []
-
-    with torch.no_grad():
-        for i in range(n_samples):
-            # Forward pass with dropout active
-            bz_mean, bz_logvar, severity_logits = model(feature_tensor)
-
-            # Extract values
-            bz_norm = bz_mean.cpu().numpy().squeeze()
-            bz_logvar_val = bz_logvar.cpu().numpy().squeeze()
-
-            # Calculate std from log variance
-            bz_std_norm = np.exp(0.5 * bz_logvar_val)
-
-            # Denormalize Bz
-            bz_nT = bz_normalizer.inverse_transform(np.array([bz_norm]))[0]
-
-            # Denormalize uncertainty (scale by Bz range)
-            bz_range = bz_normalizer.bz_max - bz_normalizer.bz_min
-            bz_std_nT = float(bz_std_norm * bz_range)
-
-            # Severity probabilities
-            probs = torch.softmax(severity_logits, dim=-1).cpu().numpy().squeeze()
-            sev_class = int(np.argmax(probs))
-            sev_conf = float(probs[sev_class])
-
-            predictions.append(SatellitePrediction(
-                satellite_id=SATELLITE_IDS[i] if i < len(SATELLITE_IDS) else f"SAT_{i}",
-                bz_mean=float(bz_nT),
-                bz_std=bz_std_nT,
-                severity_class=sev_class,
-                severity_name=SEVERITY_NAMES[sev_class],
-                severity_confidence=sev_conf,
-                severity_probs=probs.tolist()
-            ))
-
-    return predictions
+# ==============================================================================
+# END DEPRECATED CODE
+# ==============================================================================
 
 
 def tmr_vote(

@@ -33,12 +33,28 @@ from torch.utils.data import DataLoader, TensorDataset
 
 
 # ============================================================================
+# MVP CLASSIFICATION SYSTEM
+# ============================================================================
+# The MVP uses Bz-threshold classification for TRAINING-LABEL CONSISTENCY.
+# This is NOT equivalent to the operational dose-based system in severity.py.
+#
+# MVP (this file):     Bz thresholds -> direct severity labels for training
+# Operational (future): Predicted Bz -> dose calculation -> severity classification
+#
+# The dose-based system (severity.py) is used for post-prediction validation
+# (e.g., verifying Bastille Day dose = 985 mSv from predicted Bz).
+# ============================================================================
+
+# ============================================================================
 # SEVERITY SYSTEM — Clean, Bz-derived thresholds
 # ============================================================================
 
 SEVERITY_NAMES = ['Low', 'Moderate', 'High', 'Extreme']
 
-# Extreme: Bz ≤ -30  |  High: (-30, -20]  |  Moderate: (-20, -10]  |  Low: > -10
+# Extreme: Bz <= -30  |  High: (-30, -20]  |  Moderate: (-20, -10]  |  Low: > -10
+# SYNC NOTE: keep these values identical to NeuralNetwork_ML/config.py BZ_THRESHOLDS.
+# This script is intentionally standalone (no NeuralNetwork_ML dependency) so that
+# it can be run from a clean environment without the full package installed.
 BZ_THRESHOLDS = (-30.0, -20.0, -10.0)
 
 
@@ -429,7 +445,9 @@ def prepare_data(device, master_seed=42):
     perm = np.random.RandomState(123).permutation(len(X_all))
     X_all, y_bz_all, y_sev_all = X_all[perm], y_bz_all[perm], y_sev_all[perm]
 
-    # Normalize (fit on training only)
+    # NOTE: MVP uses z-score normalization (StandardScaler) for training efficiency.
+    # The operational system will use predefined [0,1] bounds from config.py
+    # FEATURE_BOUNDS for deterministic normalization on embedded hardware.
     scaler = StandardScaler()
     X_all_n = scaler.fit_transform(X_all)
 
@@ -481,7 +499,7 @@ def train_single(data, device, seed, tag=""):
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0005, weight_decay=1e-5)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode='min', factor=0.5, patience=5, verbose=False)
+        optimizer, mode='min', factor=0.5, patience=5)
 
     # v2: balanced weights (reduced Extreme bias from 12→5)
     class_weights = torch.tensor([1.0, 1.5, 2.5, 5.0], device=device)
@@ -623,8 +641,13 @@ def evaluate_ensemble(models, scaler, data, device):
     bz_mae    = float(bz_errors.mean())
     bz_std    = float(bz_errors.std())
 
-    baseline_mae = 12.5
-    improvement  = ((baseline_mae - bz_mae) / baseline_mae) * 100
+    # Physics-based geometric baseline: simplified Bz estimate from speed + latitude
+    baseline_predictions = []
+    for ev in test_evs:
+        bz_baseline = -0.1 * ev['speed'] * np.sin(np.radians(ev['source_lat']))
+        baseline_predictions.append(bz_baseline)
+    baseline_mae = np.mean(np.abs(np.array(baseline_predictions) - np.array(y_bz_t)))
+    improvement = ((baseline_mae - bz_mae) / baseline_mae) * 100 if baseline_mae > 0 else 0.0
 
     sev_correct  = int((sev_pred_np == y_sev_t).sum())
     sev_accuracy = sev_correct / len(y_sev_t) * 100
@@ -641,10 +664,10 @@ def evaluate_ensemble(models, scaler, data, device):
     print(f"\n  Bz Prediction:  MAE = {bz_mae:.2f} nT  |  Std = {bz_std:.2f} nT  |  "
           f"Improvement = {improvement:.1f}%")
     print(f"  Severity:       Accuracy = {sev_accuracy:.1f}% ({sev_correct}/{len(y_sev_t)})  |  "
-          f"Adjacent±1 = {adjacent_or_correct:.1f}%")
+          f"Adjacent+/-1 = {adjacent_or_correct:.1f}%")
 
     print(f"\n  {'':>3} {'Event':<28} {'TrueBz':>7} {'PredBz':>7} {'Err':>5} "
-          f"{'σ':>5} {'TrueSev':>8} {'PredSev':>8} {'Conf':>6}")
+          f"{'Unc':>5} {'TrueSev':>8} {'PredSev':>8} {'Conf':>6}")
     print("  " + "-" * 85)
 
     event_details = []
@@ -675,6 +698,9 @@ def evaluate_ensemble(models, scaler, data, device):
             },
         })
 
+    # Compute confidence range across all test events
+    all_confidences = [ev['confidence_pct'] for ev in event_details]
+
     # --- Bastille Day Showcase ---
     print("\n" + "=" * 78)
     print("  BASTILLE DAY 2000 — SHOWCASE (Completely Excluded)")
@@ -704,7 +730,7 @@ def evaluate_ensemble(models, scaler, data, device):
     bast_conf    = bast_probs[bast_sev_idx] * 100
 
     print(f"\n  True Bz:     {bastille['Bz_measured']:.1f} nT")
-    print(f"  Predicted:   {bast_bz_ens:.2f} nT  (σ = {bast_sigma:.1f} nT)")
+    print(f"  Predicted:   {bast_bz_ens:.2f} nT  (unc = {bast_sigma:.1f} nT)")
     print(f"  Error:       {bast_error:.2f} nT")
     print(f"  Severity:    {SEVERITY_NAMES[bast_sev_idx]} "
           f"({bast_conf:.1f}% confidence)")
@@ -743,9 +769,16 @@ def evaluate_ensemble(models, scaler, data, device):
         },
         'test_events': event_details,
         'bastille': bastille_details,
+        'confidence_range': {
+            'min': float(min(all_confidences)),
+            'max': float(max(all_confidences)),
+            'mean': float(np.mean(all_confidences)),
+            'note': 'Full range across 6-event test set (not just extreme events)'
+        },
         'detection': {
-            'confidence': 93.0,
-            'false_positive_rate': 5.0,
+            'confidence': None,  # Not measured in MVP (requires CNN + coronagraph imagery)
+            'false_positive_rate': None,  # Target: <5% for operational system
+            'note': 'Detection validation requires coronagraph imagery pipeline (future work)'
         },
     }
     return results
@@ -765,8 +798,10 @@ def print_whitepaper_metrics(results):
     print("=" * 78)
 
     print("\n  Section 4.3.1 (AI-Enhanced Observation Pipeline):")
-    print(f"    [DETECTION_CONFIDENCE]   = {det['confidence']:.0f}")
-    print(f"    [FALSE_POSITIVE_RATE]    = {det['false_positive_rate']:.0f}")
+    det_conf = det['confidence']
+    det_fpr = det['false_positive_rate']
+    print(f"    [DETECTION_CONFIDENCE]   = {det_conf if det_conf is not None else 'N/A (requires CNN)'}")
+    print(f"    [FALSE_POSITIVE_RATE]    = {det_fpr if det_fpr is not None else 'N/A (requires CNN)'}")
     print(f"    [BZ_MAE]                 = {test['bz_mae']:.1f}")
     print(f"    [BZ_STD]                 = {test['bz_std']:.1f}")
     print(f"    [IMPROVEMENT_PERCENT]    = {test['improvement_percent']:.0f}")

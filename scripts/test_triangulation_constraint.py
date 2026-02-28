@@ -11,18 +11,18 @@ for these unknown factors in real-time.
 import sys
 from pathlib import Path
 
-# Add code directory to path
-code_dir = Path(__file__).parent / 'code'
-sys.path.insert(0, str(code_dir))
+# Add project root to path so helios_code package is importable
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 import numpy as np
-from ensemble_propagation import (  # type: ignore
+from helios_code.ensemble_propagation import (
     calculate_cme_trajectory, 
     run_ensemble,
     triangulation_constrained_prediction,
     AU_IN_KM
 )
-from triangulation import triangulate_two_lines  # type: ignore
+from helios_code.triangulation import triangulate_two_lines
 
 # Helper function for observer positions (matches geometry_verification.py)
 def get_observer_position(longitude_deg: float, distance_au: float = 1.0) -> np.ndarray:

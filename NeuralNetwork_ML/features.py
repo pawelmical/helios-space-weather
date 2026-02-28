@@ -21,6 +21,10 @@ Features:
     15. triangulation_quality (0-1 score)
     16. observation_completeness (0-1 score)
 
+MODULAR PIPELINE feature extraction — uses physics-based transforms
+with stochastic augmentation. run_final_validation.py uses a simplified
+deterministic extraction for standalone reproducibility.
+
 Author: HELIOS Team
 Date: February 2026
 """

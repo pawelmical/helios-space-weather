@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-02-11T17:12:41.016316",
+  "timestamp": "2026-02-27T14:00:41.669628",
   "pipeline_version": "v2 \u2014 3-seed ensemble, Bz-derived severity, clean thresholds",
   "methodology": "Proper train/test split \u2014 NO data leakage",
-  "device": "cuda",
+  "device": "cpu",
   "ensemble_seeds": [
     42,
     123,
@@ -30,19 +30,19 @@
     "Consistent event labels (April 2001 relabeled Extreme)"
   ],
   "whitepaper_metrics": {
-    "DETECTION_CONFIDENCE": 93.0,
-    "FALSE_POSITIVE_RATE": 5.0,
-    "BZ_MAE": 6.54,
-    "BZ_STD": 5.9,
-    "IMPROVEMENT_PERCENT": 47.7,
+    "DETECTION_CONFIDENCE": null,
+    "FALSE_POSITIVE_RATE": null,
+    "BZ_MAE": 6.29,
+    "BZ_STD": 5.61,
+    "IMPROVEMENT_PERCENT": 36.2,
     "HAZARD_ACCURACY": 83.3,
     "ADJACENT_ERROR_RATE": 100.0,
-    "BASTILLE_BZ_ERROR": 4.59
+    "BASTILLE_BZ_ERROR": 5.15
   },
   "test_set_summary": {
-    "bz_mae": 6.54,
-    "bz_std": 5.9,
-    "improvement_percent": 47.7,
+    "bz_mae": 6.29,
+    "bz_std": 5.61,
+    "improvement_percent": 36.2,
     "severity_accuracy": 83.3,
     "adjacent_or_correct": 100.0,
     "n_events": 6
@@ -52,131 +52,131 @@
       "event": "Halloween Storm 2 (Oct 29)",
       "date": "2003-10-29",
       "true_bz": -49.0,
-      "pred_bz": -55.74,
-      "error_nT": 6.74,
-      "uncertainty_nT": 18.73,
+      "pred_bz": -55.23,
+      "error_nT": 6.23,
+      "uncertainty_nT": 18.23,
       "true_severity": "Extreme",
       "pred_severity": "Extreme",
-      "confidence_pct": 91.5,
+      "confidence_pct": 91.7,
       "correct": true,
       "severity_probs": {
         "Low": 0.7,
-        "Moderate": 2.1,
+        "Moderate": 2.0,
         "High": 5.7,
-        "Extreme": 91.5
+        "Extreme": 91.7
       }
     },
     {
       "event": "September 2017",
       "date": "2017-09-06",
       "true_bz": -32.0,
-      "pred_bz": -31.52,
-      "error_nT": 0.48,
-      "uncertainty_nT": 12.43,
+      "pred_bz": -31.63,
+      "error_nT": 0.37,
+      "uncertainty_nT": 12.57,
       "true_severity": "Extreme",
       "pred_severity": "Extreme",
-      "confidence_pct": 54.9,
+      "confidence_pct": 55.2,
       "correct": true,
       "severity_probs": {
-        "Low": 4.2,
+        "Low": 4.3,
         "Moderate": 13.5,
-        "High": 27.4,
-        "Extreme": 54.9
+        "High": 27.1,
+        "Extreme": 55.2
       }
     },
     {
       "event": "January 2005 (secondary)",
       "date": "2005-01-17",
       "true_bz": -25.0,
-      "pred_bz": -43.88,
-      "error_nT": 18.88,
-      "uncertainty_nT": 19.88,
+      "pred_bz": -43.07,
+      "error_nT": 18.07,
+      "uncertainty_nT": 19.69,
       "true_severity": "High",
       "pred_severity": "Extreme",
-      "confidence_pct": 75.8,
+      "confidence_pct": 74.7,
       "correct": false,
       "severity_probs": {
-        "Low": 4.4,
-        "Moderate": 7.1,
-        "High": 12.8,
-        "Extreme": 75.8
+        "Low": 4.7,
+        "Moderate": 7.4,
+        "High": 13.3,
+        "Extreme": 74.7
       }
     },
     {
       "event": "November 2001",
       "date": "2001-11-24",
       "true_bz": -30.0,
-      "pred_bz": -35.18,
-      "error_nT": 5.18,
-      "uncertainty_nT": 16.28,
+      "pred_bz": -35.07,
+      "error_nT": 5.07,
+      "uncertainty_nT": 15.98,
       "true_severity": "Extreme",
       "pred_severity": "Extreme",
-      "confidence_pct": 62.5,
+      "confidence_pct": 62.4,
       "correct": true,
       "severity_probs": {
-        "Low": 6.1,
+        "Low": 5.8,
         "Moderate": 11.5,
-        "High": 20.0,
-        "Extreme": 62.5
+        "High": 20.3,
+        "Extreme": 62.4
       }
     },
     {
       "event": "May 2024",
       "date": "2024-05-11",
       "true_bz": -50.0,
-      "pred_bz": -55.49,
-      "error_nT": 5.49,
-      "uncertainty_nT": 20.75,
+      "pred_bz": -55.2,
+      "error_nT": 5.2,
+      "uncertainty_nT": 20.33,
       "true_severity": "Extreme",
       "pred_severity": "Extreme",
-      "confidence_pct": 89.0,
+      "confidence_pct": 89.2,
       "correct": true,
       "severity_probs": {
-        "Low": 1.4,
+        "Low": 1.3,
         "Moderate": 2.9,
         "High": 6.6,
-        "Extreme": 89.0
+        "Extreme": 89.2
       }
     },
     {
       "event": "October 2024",
       "date": "2024-10-10",
       "true_bz": -38.0,
-      "pred_bz": -35.53,
-      "error_nT": 2.47,
-      "uncertainty_nT": 16.23,
+      "pred_bz": -35.23,
+      "error_nT": 2.77,
+      "uncertainty_nT": 15.97,
       "true_severity": "Extreme",
       "pred_severity": "Extreme",
-      "confidence_pct": 63.3,
+      "confidence_pct": 62.8,
       "correct": true,
       "severity_probs": {
-        "Low": 5.8,
-        "Moderate": 11.1,
-        "High": 19.7,
-        "Extreme": 63.3
+        "Low": 5.7,
+        "Moderate": 11.3,
+        "High": 20.2,
+        "Extreme": 62.8
       }
     }
   ],
   "bastille_showcase": {
     "event": "Bastille Day 2000 (Jul 14)",
     "true_bz": -60,
-    "pred_bz": -55.41,
-    "error_nT": 4.59,
-    "uncertainty_nT": 18.62,
+    "pred_bz": -54.85,
+    "error_nT": 5.15,
+    "uncertainty_nT": 18.04,
     "true_severity": "Extreme",
     "pred_severity": "Extreme",
-    "confidence_pct": 91.4,
+    "confidence_pct": 91.6,
     "correct": true,
     "severity_probs": {
-      "Low": 0.7,
-      "Moderate": 2.1,
+      "Low": 0.6,
+      "Moderate": 2.0,
       "High": 5.8,
-      "Extreme": 91.4
+      "Extreme": 91.6
     },
     "ensemble_predictions": [
-      -55.3,
-      -56.23,
-      -54.71
+      -55.18,
+      -56.04,
+      -53.33
     ]
   }
 }

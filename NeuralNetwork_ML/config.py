@@ -40,20 +40,20 @@ MODEL_CONFIG = {
 
     # Shared Encoder - INCREASED CAPACITY for better Bz learning
     'encoder_layers': [16, 128, 256, 128, 64],
-    'encoder_activation': 'relu',
-    'encoder_dropout': 0.15,  # Reduced dropout for better learning
+    'encoder_activation': 'gelu',
+    'encoder_dropout': 0.20,  # Matches run_final_validation.py
 
     # Bz Regression Head
     'bz_head_layers': [64, 32, 2],  # Output: [mean, log_variance]
-    'bz_activation': 'relu',
+    'bz_activation': 'gelu',
 
     # Severity Classification Head
     'severity_head_layers': [64, 32, 4],  # 4 classes
-    'severity_activation': 'relu',
+    'severity_activation': 'gelu',
 
-    # Loss weights (multi-task learning) - EMPHASIZE Bz MORE
-    'alpha_bz': 0.8,      # Weight for Bz regression loss (increased)
-    'beta_severity': 0.2,  # Weight for severity classification loss
+    # Loss weights (multi-task learning) - balanced
+    'alpha_bz': 0.5,      # Weight for Bz regression loss
+    'beta_severity': 0.5,  # Weight for severity classification loss
 }
 
 # ============================================================================
@@ -61,16 +61,17 @@ MODEL_CONFIG = {
 # ============================================================================
 TRAINING_CONFIG = {
     'batch_size': 64,
-    'learning_rate': 1e-3,
+    'optimizer': 'Adam',
+    'learning_rate': 5e-4,
     'weight_decay': 1e-5,
     'epochs': 100,
-    'early_stopping_patience': 15,  # More patience for imbalanced data
+    'early_stopping_patience': 20,
     'validation_split': 0.2,
     'random_seed': 42,
 
     # Class weighting for imbalanced severity classification
     'use_class_weights': True,
-    'severity_class_weights': [1.0, 1.5, 3.0, 10.0],  # Low, Moderate, High, Extreme
+    'severity_class_weights': [1.0, 1.5, 2.5, 5.0],  # Low, Moderate, High, Extreme
 }
 
 # ============================================================================
@@ -78,11 +79,11 @@ TRAINING_CONFIG = {
 # ============================================================================
 DATASET_CONFIG = {
     'n_synthetic_events': 10000,
-    'n_historical_events': 20,
+    'n_historical_events': 19,  # 12 train + 6 test + 1 showcase (Bastille Day, excluded from training)
 
     # Stratified sampling - ensure sufficient extreme events
     'stratified_sampling': True,
-    'target_class_distribution': [0.35, 0.30, 0.20, 0.15],  # Low, Moderate, High, Extreme
+    'target_class_distribution': [0.20, 0.20, 0.25, 0.35],  # Inverted: oversampling extreme events for rare-class learning
     'min_extreme_events': 1000,  # Ensure at least this many Extreme class
 
     # Extreme event augmentation
@@ -142,6 +143,42 @@ BZ_CONFIG = {
 }
 
 # ============================================================================
+# BZ SEVERITY THRESHOLDS (Training labels)
+# ============================================================================
+# These map southward Bz (nT) to a 4-class severity index.
+# Used by run_final_validation.py AND run_complete_mvp.py — defined here
+# once as the single source of truth.
+#
+#   Class 0 — Low      : Bz > -10 nT
+#   Class 1 — Moderate : -20 < Bz <= -10 nT
+#   Class 2 — High     : -30 < Bz <= -20 nT
+#   Class 3 — Extreme  : Bz <= -30 nT
+BZ_THRESHOLDS = (-30.0, -20.0, -10.0)  # nT, ordered from most-negative to least
+
+
+def bz_to_severity(bz: float) -> int:
+    """Map a southward Bz value (nT) to a severity class index (0-3).
+
+    Parameters
+    ----------
+    bz : float
+        Bz component in nT (negative = southward).
+
+    Returns
+    -------
+    int
+        0 = Low, 1 = Moderate, 2 = High, 3 = Extreme.
+    """
+    if bz <= BZ_THRESHOLDS[0]:   # <= -30 nT
+        return 3
+    if bz <= BZ_THRESHOLDS[1]:   # <= -20 nT
+        return 2
+    if bz <= BZ_THRESHOLDS[2]:   # <= -10 nT
+        return 1
+    return 0
+
+
+# ============================================================================
 # SEVERITY THRESHOLDS (Dosimetry-based)
 # ============================================================================
 # ── DEEP-SPACE DOSIMETRY (no magnetosphere) ──
@@ -153,7 +190,9 @@ BZ_CONFIG = {
 # Calibration events:
 #   Aug 1972, Bastille Day 2000, Halloween 2003, Jan 2005,
 #   Mar 1989, Sep 2017, May 2024, Carrington 1859.
-#   Bastille Day 2000: 1106 mSv predicted vs 1015 observed (+9%).
+#   Bastille Day 2000 dose validation:
+#     Ground-truth Bz=-60 nT, speed=1674 km/s => 1106 mSv (calibration reference)
+#     Model-predicted Bz=-54.85 nT => 985 mSv (reported in whitepaper/validation)
 #
 # Context: Bz is an empirical PROXY for CME energy, not a direct
 # radiation driver.  In deep space there is no magnetospheric
@@ -164,7 +203,7 @@ BZ_CONFIG = {
 #   - Kim et al. 2015 (SPE dose estimates)
 #   - Cucinotta et al. 2010 (NASA Constellation programme)
 #   - NCRP Report 132
-#   - NASA-STD-3001 Vol.1 Rev A (2022)
+#   - NASA-STD-3001 Vol.1 Rev C (2023)
 
 SEVERITY_CONFIG = {
     't_exposure_hours': 10.0,  # Pessimistic worst-case EVA
@@ -193,7 +232,7 @@ SEVERITY_CONFIG = {
         'extreme': (-80, -25)     # >250 mSv at 800 km/s
     },
 
-    # NASA dose limits (deep-space, NASA-STD-3001 Vol.1 Rev A)
+    # NASA dose limits (deep-space, NASA-STD-3001 Vol.1 Rev C (2023))
     'nasa_30day_limit_mSv': 250,
     'nasa_annual_limit_mSv': 500,
     'nasa_career_limit_mSv': 600,
@@ -209,7 +248,7 @@ VALIDATION_TARGETS = {
     'bastille_day_2000': {
         'date': '2000-07-14',
         'expected_bz': -60.0,  # nT (measured at ACE)
-        'bz_tolerance': 10.0,  # MAE target per whitepaper Table 4
+        'bz_tolerance': 7.0,   # MAE target per whitepaper Table 4 (README: 6.5 nT achieved)
         'expected_severity': 3, # Extreme
         'speed_kms': 1674,
         'width_deg': 360,
