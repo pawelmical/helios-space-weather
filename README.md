@@ -51,6 +51,7 @@ python scripts/run_complete_mvp.py
 ```
 helios-space-weather/
 ├── README.md                      # This file
+├── CHANGELOG.md                   # Version history
 ├── requirements.txt               # Python dependencies (includes PyTorch)
 ├── LICENSE                        # MIT License
 ├── .gitignore                     # Git ignore file
@@ -77,6 +78,14 @@ helios-space-weather/
 │   ├── dataset_generator.py       # Dataset generation
 │   └── validation.py              # Model validation
 │
+├── helios_orbits/                 # Orbital mechanics & mission design
+│   ├── helios_orbital_mechanics.py    # CR3BP orbital propagation
+│   ├── helios_orbital_params.txt      # Mission parameters summary
+│   ├── helios_l1_halo_orbit.png       # L1 halo orbit visualization
+│   ├── helios_l4_drift_orbit.png      # L4 drift orbit visualization
+│   ├── helios_l5_drift_orbit.png      # L5 drift orbit visualization
+│   └── helios_srp_comparison.png      # Solar radiation pressure effects
+│
 ├── scripts/
 │   ├── run_complete_mvp.py        # ⚡ DEMO: load saved model, run Bastille Day TMR pipeline (~5s)
 │   ├── run_final_validation.py    # 🔁 RETRAIN: train 3-seed ensemble from scratch (GPU recommended, ~30-60 min)
@@ -87,22 +96,32 @@ helios-space-weather/
 │
 ├── data/
 │   ├── events_list.csv            # CME event catalog
-│   └── bastille_goes8_data.json   # Bastille Day 2000 data
+│   ├── bastille_goes8_data.json   # Bastille Day 2000 data
+│   └── images/                    # Image assets
+│       └── README.md              # Image folder documentation
 │
 ├── output/
-│   ├── helios_final_model_proper.pth  # Trained model
-│   ├── final_validation_results.json  # Gold standard metrics
-│   ├── mvp_results/                   # Validation run outputs
+│   ├── helios_final_model_proper.pth  # Trained model checkpoint
+│   ├── final_validation_results.json  # Gold standard metrics (authoritative)
+│   ├── mvp_results/                   # TMR showcase outputs
 │   ├── geometry_verification.csv      # Geometry validation results
-│   ├── coverage_analysis.csv          # L1/L4/L5 sky-coverage analysis (whitepaper Table 2)
-│   ├── spatial_resolution_sweep.csv   # Triangulation resolution vs baseline (whitepaper Figure)
+│   ├── coverage_analysis.csv          # L1/L4/L5 sky-coverage analysis
+│   ├── spatial_resolution_sweep.csv   # Triangulation resolution vs baseline
 │   ├── timing_advantage.csv           # Detection timing vs L1-only baseline
-│   └── ...                            # Additional CSV outputs
+│   ├── detection_windows_verification.csv  # SEZ detection windows
+│   └── dose_validation_matrix.csv     # Dose calculation validation
 │
-└── docs/                          # Technical documentation
-    ├── GEOMETRY_UNIFIED.md        # Constellation geometry
-    ├── TRIANGULATION_GUIDE.md     # Algorithm guide
-    └── METRIC_CALCULATION_TRACE.md # Metric derivation
+├── docs/                          # Developer documentation
+│   ├── GEOMETRY_UNIFIED.md        # Constellation geometry
+│   ├── TRIANGULATION_GUIDE.md     # Algorithm guide
+│   └── METRIC_CALCULATION_TRACE.md # Metric derivation
+│
+└── technical_documentation/       # Stakeholder documentation
+    ├── README.md                  # Architecture overview
+    ├── METRIC_PROVENANCE.md       # Metric derivation trace
+    ├── whitepaper/                # HELIOS whitepaper (user-provided)
+    ├── appendices/                # Technical appendices (user-provided)
+    └── pitchdeck/                 # Investor presentation (user-provided)
 ```
 
 ## Usage Examples
