@@ -65,7 +65,7 @@ Pipeline 1 is standalone for reproducibility - anyone can run one script and get
 technical_documentation/
   README.md                 # This file
   METRIC_PROVENANCE.md      # Detailed metric derivation
-  whitepaper/               # HELIOS whitepaper and figures
+  whitepaper/               # HELIOS whitepaper
   appendices/               # Technical appendices
   pitchdeck/                # Investor presentation materials
 ```
