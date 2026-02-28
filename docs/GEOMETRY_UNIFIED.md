@@ -105,7 +105,7 @@ UNCERTAINTY RANGE:
 
 ### **3. Coverage Analysis**
 
-- **Total Coverage**: ~83.3% of heliosphere
+- **Total Coverage**: ~83.3% of heliosphere (mean ~83.5%)
 - **Blind Spot**: ~60° on far side (opposite Earth)
 - **Earth Threat Zone**: Fully covered (0° ± 90°)
 
