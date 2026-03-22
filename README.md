@@ -169,7 +169,7 @@ MIT License — see [LICENSE](LICENSE)
 
 **Paweł Micał**  
 📧 pawelmical@icloud.com  
-🔗 [LinkedIn](https://linkedin.com/in/pawelmical)  
+🔗 [LinkedIn](https://www.linkedin.com/in/paweł-micał-0483bb38a/)  
 📄 [Technical Whitepaper](technical_documentation/whitepaper/)
 
 ---
