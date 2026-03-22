@@ -133,131 +133,63 @@ class DualHeadBzModel(nn.Module):
 
 def load_historical_events_split():
     """
-    Load 19 events with CONSISTENT Bz-derived severity labels.
+    Load events from data/events_list.csv dynamically.
 
     Strategy:
-    - Training: 12 events (oversampled 50x + augmentation)
-    - Test: 6 events (NEVER seen during training)
     - Showcase: Bastille Day 2000 (completely excluded)
+    - Test: 20% of remaining events (random split, seed=42)
+    - Train: 80% of remaining events
     """
+    import pandas as pd
+    from pathlib import Path
 
-    # ── TRAINING SET (12 events) ──────────────────────────────────────────
-    train_events = [
-        # EXTREME (Bz ≤ -30) — 5 training events
-        {
-            'name': 'Halloween Storm 1 (Oct 28)', 'date': '2003-10-28',
-            'speed': 2459, 'width': 360, 'source_lat': 16, 'source_lon': -8,
-            'Bz_measured': -50, 'reference': 'Gopalswamy et al. 2005',
-        },
-        {
-            'name': 'January 2005 Storm', 'date': '2005-01-15',
-            'speed': 2861, 'width': 360, 'source_lat': 14, 'source_lon': -5,
-            'Bz_measured': -55, 'reference': 'Xie et al. 2006',
-        },
-        {
-            'name': 'July 2012 STEREO', 'date': '2012-07-12',
-            'speed': 1900, 'width': 360, 'source_lat': 15, 'source_lon': -8,
-            'Bz_measured': -55, 'reference': 'Baker et al. 2013',
-        },
-        {
-            'name': 'November 2003', 'date': '2003-11-20',
-            'speed': 1660, 'width': 360, 'source_lat': 2, 'source_lon': 8,
-            'Bz_measured': -45, 'reference': 'Gopalswamy et al. 2005',
-        },
-        {
-            # v1 had this as "High" but Bz=-38 ≤ -30 → Extreme
-            'name': 'April 2001', 'date': '2001-04-02',
-            'speed': 1200, 'width': 280, 'source_lat': 20, 'source_lon': -10,
-            'Bz_measured': -38, 'reference': 'Yashiro et al. 2004',
-        },
+    csv_path = Path(__file__).parent.parent / "data" / "events_list.csv"
+    if not csv_path.exists():
+        raise FileNotFoundError(f"Missing events database: {csv_path}")
 
-        # EXTREME — 1 more
-        {
-            'name': 'December 2006', 'date': '2006-12-13',
-            'speed': 1774, 'width': 360, 'source_lat': 6, 'source_lon': 38,
-            'Bz_measured': -48, 'reference': 'Zhang et al. 2007',
-        },
+    df = pd.read_csv(csv_path)
 
-        # HIGH (-30 < Bz ≤ -20) — 2 training events
-        {
-            'name': "St. Patrick's Day 2015", 'date': '2015-03-17',
-            'speed': 700, 'width': 220, 'source_lat': 22, 'source_lon': -12,
-            'Bz_measured': -22, 'reference': 'Kamide & Kusano 2015',
-        },
-        {
-            'name': 'June 2015', 'date': '2015-06-22',
-            'speed': 750, 'width': 230, 'source_lat': 13, 'source_lon': 20,
-            'Bz_measured': -20, 'reference': 'Kataoka et al. 2015',
-        },
+    # Filter for events with CME data
+    df = df[df['has_cme'].astype(str).str.lower() == 'true'].copy()
 
-        # MODERATE (-20 < Bz ≤ -10) — 4 training events
-        {
-            'name': 'August 2011', 'date': '2011-08-05',
-            'speed': 650, 'width': 200, 'source_lat': 21, 'source_lon': 5,
-            'Bz_measured': -15, 'reference': 'Pulkkinen et al. 2012',
-        },
-        {
-            'name': 'March 2012', 'date': '2012-03-07',
-            'speed': 680, 'width': 210, 'source_lat': 18, 'source_lon': -8,
-            'Bz_measured': -17, 'reference': 'Ngwira et al. 2013',
-        },
-        {
-            'name': 'April 2023', 'date': '2023-04-24',
-            'speed': 550, 'width': 180, 'source_lat': 12, 'source_lon': 15,
-            'Bz_measured': -14, 'reference': 'NOAA SWPC 2023',
-        },
-        {
-            'name': 'February 2022', 'date': '2022-02-03',
-            'speed': 480, 'width': 140, 'source_lat': 12, 'source_lon': 18,
-            'Bz_measured': -12, 'reference': 'NOAA SWPC 2022',
-        },
-    ]
-
-    # ── TEST SET (6 events) — NEVER SEEN during training ──────────────────
-    test_events = [
-        {
-            'name': 'Halloween Storm 2 (Oct 29)', 'date': '2003-10-29',
-            'speed': 2029, 'width': 360, 'source_lat': 15, 'source_lon': -2,
-            'Bz_measured': -49, 'reference': 'Gopalswamy et al. 2005',
-        },
-        {
-            'name': 'September 2017', 'date': '2017-09-06',
-            'speed': 800, 'width': 240, 'source_lat': 8, 'source_lon': 35,
-            'Bz_measured': -32, 'reference': 'Redmon et al. 2018',
-        },
-        {
-            'name': 'January 2005 (secondary)', 'date': '2005-01-17',
-            'speed': 1200, 'width': 260, 'source_lat': 8, 'source_lon': -30,
-            'Bz_measured': -25, 'reference': 'Srivastava & Venkatakrishnan 2004',
-        },
-        {
-            'name': 'November 2001', 'date': '2001-11-24',
-            'speed': 1100, 'width': 250, 'source_lat': 18, 'source_lon': 12,
-            'Bz_measured': -30, 'reference': 'Gopalswamy et al. 2002',
-        },
-        {
-            'name': 'May 2024', 'date': '2024-05-11',
-            'speed': 1000, 'width': 320, 'source_lat': 25, 'source_lon': -30,
-            'Bz_measured': -50, 'reference': 'NOAA SWPC 2024',
-        },
-        {
-            'name': 'October 2024', 'date': '2024-10-10',
-            'speed': 900, 'width': 280, 'source_lat': 15, 'source_lon': -25,
-            'Bz_measured': -38, 'reference': 'NOAA SWPC 2024',
-        },
-    ]
-
-    # ── SHOWCASE (completely excluded) ────────────────────────────────────
-    bastille_event = {
-        'name': 'Bastille Day 2000', 'date': '2000-07-14',
-        'speed': 1674, 'width': 360, 'source_lat': 22, 'source_lon': 7,
-        'Bz_measured': -60, 'reference': 'Nishino et al. 2006',
-    }
-
-    # ── Assign severity labels FROM Bz (consistent with thresholds) ──────
-    for ev in train_events + test_events + [bastille_event]:
-        ev['severity_idx'] = bz_to_severity(ev['Bz_measured'])
+    events = []
+    for _, row in df.iterrows():
+        ev = {
+            'id': str(row['event_id']),
+            'name': f"{row['event_id']} ({row['date']})",
+            'date': str(row['date']),
+            'speed': float(row['initial_speed_kms']),
+            'width': float(row['width']),
+            'source_lat': float(row['source_lat']),
+            'source_lon': float(row['source_lon']),
+            'Bz_measured': float(row['bz_measured']),
+            'severity_idx': bz_to_severity(float(row['bz_measured'])),
+        }
         ev['severity_label'] = SEVERITY_NAMES[ev['severity_idx']]
+        events.append(ev)
+
+    # Separate Showcase
+    bastille_event = next((e for e in events if e['id'] == 'bastille_day'), None)
+    if bastille_event is None:
+        raise ValueError("Bastille Day showcase event not found in database!")
+
+    # Pool for split (exclude showcase)
+    remaining = [e for e in events if e['id'] != 'bastille_day']
+
+    # Deterministic shuffle for split
+    rng = np.random.RandomState(42)
+    rng.shuffle(remaining)
+
+    # 20% test split
+    split_idx = int(0.2 * len(remaining))
+    test_events = remaining[:split_idx]
+    train_events = remaining[split_idx:]
+
+    print(f"\n  Dynamic Database Loaded:")
+    print(f"    Total Events: {len(events)}")
+    print(f"    Training Set: {len(train_events)}")
+    print(f"    Test Set:     {len(test_events)}")
+    print(f"    Showcase:     {bastille_event['name']}")
 
     return train_events, test_events, bastille_event
 
@@ -811,8 +743,8 @@ def print_whitepaper_metrics(results):
     print(f"    [ADJACENT_ERROR_RATE]    = {test['adjacent_or_correct']:.0f}")
     print(f"    [BASTILLE_BZ_ERROR]      = {bast['error_nT']:.1f}")
 
-    print("\n" + "=" * 78)
-    print("  METRICS BASED ON TRUE UNSEEN TEST SET (N=6)")
+    print(f"\n" + "=" * 78)
+    print(f"  METRICS BASED ON TRUE UNSEEN TEST SET (N={test['n_events']})")
     print("  3-SEED ENSEMBLE | Bz-DERIVED SEVERITY | NO DATA LEAKAGE")
     print("=" * 78)
 
